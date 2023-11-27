@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# freed.sh - free domain script
+# freed.sh - free domain shell script
 # Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 #
 SCRIPT=$(basename "$0")
@@ -365,7 +365,7 @@ clean_all() {
 # check for result, if any, in ${DOMAIN}.whois
 if [ "$(wc -l "${DOMAIN}".whois | cut -d' ' -f1)" -eq 0 ]; then
     echo "[$(timestamp)] No result. Bye!"
-    clean_all "$@"
+    clean_all
     exit 0
 fi
 
