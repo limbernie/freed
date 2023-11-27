@@ -68,6 +68,6 @@ $ ./freed.sh -d '·' -i -k -p 100d facebook.com
 
 The result is sorted in descending order (from latest to earliest) by the date/time of domain creation. 
 
-RR stands for Registrar, and is shown by the Registrar's URL.
+RR stands for Registrar, and is shown as the Registrar's URL.
 
 ![facebook.com](facebook.com-demo.png)
