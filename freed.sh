@@ -41,15 +41,16 @@ options
   -d CHARACTER  defang character, e.g. "·" (U+00B7), "․" (U+2024), "[.]" (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i            include international domain name
+  -i DOMAIN     include domain(s) separated by comma
   -k            keep HTML result and do not send email
   -p PERIOD     period of time to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <$SMTP_USER> (default)
+  -x            show international domain name (xn--)
 EOF
 }
 
 # parse options
-while getopts ":d:e:hikp:s:" opt; do
+while getopts ":d:e:hi:kp:s:x" opt; do
     case $opt in
         d)
             DEFANG=$OPTARG
@@ -62,7 +63,7 @@ while getopts ":d:e:hikp:s:" opt; do
             exit 0
             ;;
         i)
-            XN=
+            INCLUDE=$OPTARG
             ;;
         k)
             KEEP=1
@@ -72,6 +73,9 @@ while getopts ":d:e:hikp:s:" opt; do
             ;;
         s)
             RECIPIENT=$OPTARG
+            ;;
+        x)
+            XN=
             ;;
         :)
             die "option requires an argument -- '$OPTARG'"
@@ -92,6 +96,12 @@ REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
 DEFANG=${DEFANG:=[.]}
 DOMAIN=$1; shift
 ENGINE=${ENGINE:=urlinsane}
+if [ -n "$INCLUDE" ]; then
+    INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
+                | awk '{ printf "^%s$|", $0; }' \
+                | sed 's/|$//')
+    INCLUDE="($INCLUDE)"
+fi
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
 
@@ -177,21 +187,22 @@ case "$ENGINE" in
     "dnstwist")
         EXT=twist
         # dnstwist.sh
-        cat <<-EOF > "${DOMAIN}"."${ENGINE}".sh
+        cat <<-EOF > "${DOMAIN}.${ENGINE}".sh
         #!/bin/bash
 
         DOMAIN=\$1
 
         $DNSTWIST --format list \$DOMAIN \\
+        | sed 1d \\
         $XN > \${DOMAIN}.${EXT}
 EOF
-        chmod +x "${DOMAIN}"."${ENGINE}".sh
+        chmod +x "${DOMAIN}.${ENGINE}".sh
         ;;
 
     "urlcrazy")
         EXT=crazy
         # urlcrazy.sh
-        cat <<-EOF > "${DOMAIN}"."${ENGINE}".sh
+        cat <<-EOF > "${DOMAIN}.${ENGINE}".sh
         #!/bin/bash
 
         DOMAIN=\$1
@@ -200,16 +211,16 @@ EOF
 
         $URLCRAZY -n -r \${DOMAIN} \\
         | grep -Ev '[ST]LD' \\
-        | sed -e '\$d' -e '10,\$!d' \\
+        | sed -e '\$d' -e '11,\$!d' \\
         | awk '{ print \$NF }' > \${DOMAIN}.${EXT}
 EOF
-        chmod +x "${DOMAIN}"."${ENGINE}".sh
+        chmod +x "${DOMAIN}.${ENGINE}".sh
         ;;
 
     "urlinsane")
         EXT=insane
         # urlinsane.sh
-        cat <<-EOF > "${DOMAIN}"."${ENGINE}".sh
+        cat <<-EOF > "${DOMAIN}.${ENGINE}".sh
         #!/bin/bash
 
         DOMAIN=\$1
@@ -220,7 +231,7 @@ EOF
         | awk -F, '{ print \$NF }' \\
         $XN > \${DOMAIN}.${EXT}
 EOF
-        chmod +x "${DOMAIN}"."${ENGINE}".sh
+        chmod +x "${DOMAIN}.${ENGINE}".sh
         ;;
 
     *) die "invalid permutation engine" ;;
@@ -233,7 +244,7 @@ echo "[$(timestamp)] $SCRIPT has started."
 # Running \`$ENGINE' on "${DOMAIN}"...
 echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
 
-./"${DOMAIN}"."${ENGINE}".sh "${DOMAIN}"
+./"${DOMAIN}.${ENGINE}".sh "${DOMAIN}" && sed -i "1i\\$DOMAIN" "${DOMAIN}.${EXT}"
 
 echo "done"
 
@@ -259,7 +270,7 @@ function check() {
                         | cut -d':' -f2- \\
                         | sed -r 's/^ +//')
         local ts=\$(date +%s -d \$date)
-        if [[ \$ts -ge $START && \$ts -le $STODAY ]]; then
+        if [[ \$ts -ge $START && \$ts -le $STODAY ]] || [[ \$domain =~ ($INCLUDE) ]]; then
             local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" \\
                         | cut -d':' -f2- \\
                         | sed -r 's/^ +(https?:\/\/)+//' \\
@@ -304,10 +315,10 @@ EOF
 chmod +x "${DOMAIN}".whois.sh
 
 # Running `whois' on "${DOMAIN}"...
-VARIATIONS=$(wc -l "${DOMAIN}".${EXT} | cut -d' ' -f1)
+VARIATIONS=$(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1)
 echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($VARIATIONS variations)..."
 
-./"${DOMAIN}".whois.sh 64 "${DOMAIN}"."${EXT}" > "${DOMAIN}".whois
+./"${DOMAIN}".whois.sh 64 "${DOMAIN}.${EXT}" > "${DOMAIN}".whois
 
 echo "done"
 
@@ -316,7 +327,7 @@ clean_result() {
     local result=$1
     case $result in
         "$EXT")
-            rm -rf "${DOMAIN}"."${EXT}"
+            rm -rf "${DOMAIN}.${EXT}"
             ;;
         "whois")
             rm -rf "${DOMAIN}".whois
@@ -325,7 +336,7 @@ clean_result() {
             rm -rf "${DOMAIN}".sorted
             ;;
         "html")
-            rm -rf "${DOMAIN}"."${EXT}".html
+            rm -rf "${DOMAIN}.${EXT}".html
             ;;
         *)
             rm -rf "${DOMAIN}".{"${EXT}",whois,sorted,"${EXT}".html}
@@ -337,7 +348,7 @@ clean_script() {
     local script=$1
     case $script in
         "$ENGINE")
-            rm -rf "${DOMAIN}"."${ENGINE}".sh
+            rm -rf "${DOMAIN}.${ENGINE}".sh
             ;;
         "whois")
             rm -rf "${DOMAIN}".whois.sh
@@ -455,7 +466,7 @@ chmod +x "${DOMAIN}".format.sh
 # Formatting result to HTML...
 echo -n "[$(timestamp)] Formatting result to HTML..."
 
-./"${DOMAIN}".format.sh "${DOMAIN}".sorted > "${DOMAIN}"."${EXT}".html
+./"${DOMAIN}".format.sh "${DOMAIN}".sorted > "${DOMAIN}.${EXT}".html
 
 echo "done"
 
