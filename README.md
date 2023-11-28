@@ -39,10 +39,13 @@ The script depends on the following programs:
 
 1. [dig](https://www.isc.org/download/)
 2. [dnstwist](https://github.com/elceef/dnstwist)
-3. [parallel](https://www.gnu.org/software/parallel/)
-4. [sendemail](https://github.com/mogaal/sendemail)
-5. [urlcrazy](https://github.com/urbanadventurer/urlcrazy)
-6. [urlinsane](https://github.com/ziazon/urlinsane)
+3. [idn](https://www.gnu.org/software/libidn/)
+4. [parallel](https://www.gnu.org/software/parallel/)
+5. [sendemail](https://github.com/mogaal/sendemail)
+6. [urlcrazy](https://github.com/urbanadventurer/urlcrazy)
+7. [urlinsane](https://github.com/ziazon/urlinsane)
+
+You should be able to get these programs from your Linux distribution.
 
 ### Permutation
 
