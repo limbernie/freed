@@ -98,9 +98,9 @@ DOMAIN=$1
 shift
 ENGINE=${ENGINE:=urlinsane}
 if [ -n "$INCLUDE" ]; then
-    INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" |
-        awk '{ printf "^%s$|", $0; }' |
-        sed 's/|$//')
+    INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
+            | awk '{ printf "^%s$|", $0; }' \
+            | sed 's/|$//')
 fi
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
@@ -492,16 +492,16 @@ SUBJECT="LOOKALIKE DOMAIN ALERT - \$DOMAIN"
 RECIPIENT=\${RECIPIENT:=\$SMTP_USER}
 
 $SENDEMAIL \\
-	-f "ALERT <\$SMTP_USER>" \\
-	-t "\$RECIPIENT" \\
-	-o tls=auto \\
+    -f "ALERT <\$SMTP_USER>" \\
+    -t "\$RECIPIENT" \\
+    -o tls=auto \\
     -o message-charset=UTF-8 \\
     -o message-content-type=html \\
-	-o message-file=${DOMAIN}.${EXT}.html \\
-	-u "\$SUBJECT" \\
-	-s "\$SERVER" \\
-	-xu "\$SMTP_USER" \\
-	-xp "\$SMTP_PASS"
+    -o message-file=${DOMAIN}.${EXT}.html \\
+    -u "\$SUBJECT" \\
+    -s "\$SERVER" \\
+    -xu "\$SMTP_USER" \\
+    -xp "\$SMTP_PASS"
 EOF
 chmod +x "${DOMAIN}".sendemail.sh
 
