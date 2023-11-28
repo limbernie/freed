@@ -23,15 +23,15 @@ options
 
 ## Premise
 
-To pull off an attack or to achieve action on objectives in a third-party compromise or business email compromise, the adversary must be tactically placed in the middle of email communications between your organization and the counter party, also known as man-in-the-email attack. A necessary condition for this attack is to register new domains or update expired ones that look like the domains of your organization and that of the counter party, which to the untrained eye, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, may be difficult to spot in an email.
+To pull off an attack or to achieve action on objectives in a third-party compromise or business email compromise, the threat actor must be tactically placed in the middle of email communications between my organization and the counter party, also known as man-in-the-email attack. A necessary condition for this attack to take place is to register new domains or to update expired ones that look like the domains of my organization and that of the counter party, which to the untrained eye, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, may be difficult to spot in an email.
 
-The idea is simple.
+My idea is simple.
 
-It makes no sense to detect newly registered domains that looked like the domains of your counter parties since that number could easily fall into hundreds, if not more, an unmanageable situation.
+It makes no sense to detect newly registered domains that looked like the domains of my counter parties since that number could easily fall into hundreds, if not more, an unmanageable situation.
 
-What if we only focus on detecting newly registered domains that looked like yours?
+What if we only focus on detecting newly registered domains that looked like ours?
 
-The script can then be put in a `crontab` to run every day, say at 12AM UTC. The script takes at most 2 mins to run, which is not time-consuming in my opinion because the script is running in multiple parallel processes.
+The script can then be put in a `crontab` to run every day, say at 12AM UTC. The script takes at most 2 mins to run, which is not time-consuming in my opinion because the script uses `parallel` to speed things up.
 
 ### Dependencies
 
@@ -58,7 +58,7 @@ Gmail SMTP service is recommended. However, the step-by-step instructions to set
 
 Running `freed.sh` on `facebook.com` to look back 100 days from the time of script run (2023-11-28), with the following options:
 
-* `-d`. Use defang character `·` (middle dot) instead of the default `[.]`.
+* `-d`. Use defang character `·` (middle dot) instead of the default `[.]` to save space.
 * `-i`. Include the original domain for comparison.
 * `-k`. Keep HTML result and do not send email.
 * `-x`. Show international domain name (to expose homoglyph attacks).
@@ -73,7 +73,7 @@ Running `freed.sh` on `facebook.com` to look back 100 days from the time of scri
 [2023-11-28T07:14:12Z] Result in file facebook.com.insane.html
 ```
 
-The result is sorted in descending order (from latest to earliest) by the date/time of domain creation. 
+The result is sorted in descending order (latest to earliest) by the domain creation date/time. 
 
 RR stands for Registrar, and is shown as the Registrar's URL.
 
