@@ -30,7 +30,7 @@ depends() {
 
 # usage statement
 usage() {
-cat <<-EOF
+    cat <<-EOF
 Usage: $SCRIPT [OPTION]... DOMAIN
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 
@@ -52,37 +52,37 @@ EOF
 # parse options
 while getopts ":d:e:hi:kp:s:x" opt; do
     case $opt in
-        d)
-            DEFANG=$OPTARG
-            ;;
-        e)
-            ENGINE=$OPTARG
-            ;;
-        h)
-            usage
-            exit 0
-            ;;
-        i)
-            INCLUDE=$OPTARG
-            ;;
-        k)
-            KEEP=1
-            ;;
-        p)
-            PERIOD=$OPTARG
-            ;;
-        s)
-            RECIPIENT=$OPTARG
-            ;;
-        x)
-            XN=
-            ;;
-        :)
-            die "option requires an argument -- '$OPTARG'"
-            ;;
-        \?)
-            die "invalid option -- '$OPTARG'"
-            ;;
+    d)
+        DEFANG=$OPTARG
+        ;;
+    e)
+        ENGINE=$OPTARG
+        ;;
+    h)
+        usage
+        exit 0
+        ;;
+    i)
+        INCLUDE=$OPTARG
+        ;;
+    k)
+        KEEP=1
+        ;;
+    p)
+        PERIOD=$OPTARG
+        ;;
+    s)
+        RECIPIENT=$OPTARG
+        ;;
+    x)
+        XN=
+        ;;
+    :)
+        die "option requires an argument -- '$OPTARG'"
+        ;;
+    \?)
+        die "invalid option -- '$OPTARG'"
+        ;;
     esac
 done
 shift "$((OPTIND - 1))"
@@ -94,13 +94,13 @@ shift "$((OPTIND - 1))"
 REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
 [[ ! "$1" =~ $REGEX ]] && die "invalid domain name"
 DEFANG=${DEFANG:=[.]}
-DOMAIN=$1; shift
+DOMAIN=$1
+shift
 ENGINE=${ENGINE:=urlinsane}
 if [ -n "$INCLUDE" ]; then
-    INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
-                | awk '{ printf "^%s$|", $0; }' \
-                | sed 's/|$//')
-    INCLUDE="($INCLUDE)"
+    INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" |
+        awk '{ printf "^%s$|", $0; }' |
+        sed 's/|$//')
 fi
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
@@ -110,12 +110,12 @@ RECIPIENT=${RECIPIENT:=$SMTP_USER}
 TIME=$(grep -Eo '^[0-9]+' <<<"$PERIOD")
 UNIT=$(grep -Eo '.$' <<<"$PERIOD" | tr '[:upper:]' '[:lower:]')
 case $UNIT in
-    'd')
-        SDELTA=$((TIME * 24 * 60 * 60))
-        ;;
-    'h')
-        SDELTA=$((TIME * 60 * 60))
-        ;;
+'d')
+    SDELTA=$((TIME * 24 * 60 * 60))
+    ;;
+'h')
+    SDELTA=$((TIME * 60 * 60))
+    ;;
 esac
 START=$((STODAY - SDELTA))
 
@@ -184,10 +184,10 @@ fi
 # select permutation engine
 case "$ENGINE" in
 
-    "dnstwist")
-        EXT=twist
-        # dnstwist.sh
-        cat <<-EOF > "${DOMAIN}.${ENGINE}".sh
+"dnstwist")
+    EXT=twist
+    # dnstwist.sh
+    cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
         #!/bin/bash
 
         DOMAIN=\$1
@@ -196,13 +196,13 @@ case "$ENGINE" in
         | sed 1d \\
         $XN > \${DOMAIN}.${EXT}
 EOF
-        chmod +x "${DOMAIN}.${ENGINE}".sh
-        ;;
+    chmod +x "${DOMAIN}.${ENGINE}".sh
+    ;;
 
-    "urlcrazy")
-        EXT=crazy
-        # urlcrazy.sh
-        cat <<-EOF > "${DOMAIN}.${ENGINE}".sh
+"urlcrazy")
+    EXT=crazy
+    # urlcrazy.sh
+    cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
         #!/bin/bash
 
         DOMAIN=\$1
@@ -214,13 +214,13 @@ EOF
         | sed -e '\$d' -e '11,\$!d' \\
         | awk '{ print \$NF }' > \${DOMAIN}.${EXT}
 EOF
-        chmod +x "${DOMAIN}.${ENGINE}".sh
-        ;;
+    chmod +x "${DOMAIN}.${ENGINE}".sh
+    ;;
 
-    "urlinsane")
-        EXT=insane
-        # urlinsane.sh
-        cat <<-EOF > "${DOMAIN}.${ENGINE}".sh
+"urlinsane")
+    EXT=insane
+    # urlinsane.sh
+    cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
         #!/bin/bash
 
         DOMAIN=\$1
@@ -231,10 +231,10 @@ EOF
         | awk -F, '{ print \$NF }' \\
         $XN > \${DOMAIN}.${EXT}
 EOF
-        chmod +x "${DOMAIN}.${ENGINE}".sh
-        ;;
+    chmod +x "${DOMAIN}.${ENGINE}".sh
+    ;;
 
-    *) die "invalid permutation engine" ;;
+*) die "invalid permutation engine" ;;
 
 esac
 
@@ -249,7 +249,7 @@ echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
 echo "done"
 
 # whois.sh
-cat <<-EOF > "${DOMAIN}".whois.sh
+cat <<-EOF >"${DOMAIN}".whois.sh
 #!/bin/bash
 
 THREADS=\$1
@@ -318,7 +318,7 @@ chmod +x "${DOMAIN}".whois.sh
 VARIATIONS=$(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1)
 echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($VARIATIONS variations)..."
 
-./"${DOMAIN}".whois.sh 64 "${DOMAIN}.${EXT}" > "${DOMAIN}".whois
+./"${DOMAIN}".whois.sh 64 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois
 
 echo "done"
 
@@ -326,45 +326,45 @@ echo "done"
 clean_result() {
     local result=$1
     case $result in
-        "$EXT")
-            rm -rf "${DOMAIN}.${EXT}"
-            ;;
-        "whois")
-            rm -rf "${DOMAIN}".whois
-            ;;
-        "sorted")
-            rm -rf "${DOMAIN}".sorted
-            ;;
-        "html")
-            rm -rf "${DOMAIN}.${EXT}".html
-            ;;
-        *)
-            rm -rf "${DOMAIN}".{"${EXT}",whois,sorted,"${EXT}".html}
-            ;;
+    "$EXT")
+        rm -rf "${DOMAIN}.${EXT}"
+        ;;
+    "whois")
+        rm -rf "${DOMAIN}".whois
+        ;;
+    "sorted")
+        rm -rf "${DOMAIN}".sorted
+        ;;
+    "html")
+        rm -rf "${DOMAIN}.${EXT}".html
+        ;;
+    *)
+        rm -rf "${DOMAIN}".{"${EXT}",whois,sorted,"${EXT}".html}
+        ;;
     esac
 }
 
 clean_script() {
     local script=$1
     case $script in
-        "$ENGINE")
-            rm -rf "${DOMAIN}.${ENGINE}".sh
-            ;;
-        "whois")
-            rm -rf "${DOMAIN}".whois.sh
-            ;;
-        "sort")
-            rm -rf "${DOMAIN}".sort.sh
-            ;;
-        "format")
-            rm -rf "${DOMAIN}".format.sh
-            ;;
-        "sendemail")
-            rm -rf "${DOMAIN}".sendemail.sh
-            ;;
-        *)
-            rm -rf "${DOMAIN}".{"${ENGINE}",whois,sort,format,sendemail}.sh
-            ;;
+    "$ENGINE")
+        rm -rf "${DOMAIN}.${ENGINE}".sh
+        ;;
+    "whois")
+        rm -rf "${DOMAIN}".whois.sh
+        ;;
+    "sort")
+        rm -rf "${DOMAIN}".sort.sh
+        ;;
+    "format")
+        rm -rf "${DOMAIN}".format.sh
+        ;;
+    "sendemail")
+        rm -rf "${DOMAIN}".sendemail.sh
+        ;;
+    *)
+        rm -rf "${DOMAIN}".{"${ENGINE}",whois,sort,format,sendemail}.sh
+        ;;
     esac
 }
 
@@ -381,7 +381,7 @@ if [ "$(wc -l "${DOMAIN}".whois | cut -d' ' -f1)" -eq 0 ]; then
 fi
 
 # sort.sh
-cat <<-EOF > "${DOMAIN}".sort.sh
+cat <<-EOF >"${DOMAIN}".sort.sh
 #!/bin/bash
 
 FILE=\$1
@@ -395,12 +395,12 @@ chmod +x "${DOMAIN}".sort.sh
 # Sorting result by timestamp...
 echo -n "[$(timestamp)] Sorting result by timestamp..."
 
-./"${DOMAIN}".sort.sh "${DOMAIN}".whois > "${DOMAIN}".sorted
+./"${DOMAIN}".sort.sh "${DOMAIN}".whois >"${DOMAIN}".sorted
 
 echo "done"
 
 # format.sh
-cat <<-EOF > "${DOMAIN}".format.sh
+cat <<-EOF >"${DOMAIN}".format.sh
 #!/bin/bash
 
 FILE=\$1
@@ -466,20 +466,22 @@ chmod +x "${DOMAIN}".format.sh
 # Formatting result to HTML...
 echo -n "[$(timestamp)] Formatting result to HTML..."
 
-./"${DOMAIN}".format.sh "${DOMAIN}".sorted > "${DOMAIN}.${EXT}".html
+./"${DOMAIN}".format.sh "${DOMAIN}".sorted >"${DOMAIN}.${EXT}".html
 
 echo "done"
 
 # Keep result and do not send email
 if [ "${KEEP:-0}" -eq 1 ]; then
     echo "[$(timestamp)] Result in file ${DOMAIN}.${EXT}.html"
-    clean_result $EXT; clean_result whois; clean_result sorted
+    clean_result $EXT
+    clean_result whois
+    clean_result sorted
     clean_script "$@"
     exit 0
 fi
 
 # sendemail.sh
-cat <<-EOF > "${DOMAIN}".sendemail.sh
+cat <<-EOF >"${DOMAIN}".sendemail.sh
 DOMAIN=\$1
 RECIPIENT=\$2
 SERVER="$SERVER"
@@ -507,13 +509,13 @@ chmod +x "${DOMAIN}".sendemail.sh
 echo -n "[$(timestamp)] Sending email to <$RECIPIENT>..."
 
 ./"${DOMAIN}".sendemail.sh \
-"$(awk '{ print $3 }' "${DOMAIN}".sorted \
-    | tr '[:lower:]' '[:upper:]' \
-    | tr ',' '.' \
-    | tr '\n', ',' \
-    | sed -e 's/,$//' -e 's/,/, /g')" \
-"$RECIPIENT" \
-&>/dev/null && echo "done" || echo "failed"
+    "$(awk '{ print $3 }' "${DOMAIN}".sorted |
+        tr '[:lower:]' '[:upper:]' |
+        tr ',' '.' |
+        tr '\n', ',' |
+        sed -e 's/,$//' -e 's/,/, /g')" \
+    "$RECIPIENT" \
+    &>/dev/null && echo "done" || echo "failed"
 
 # Clean up
 clean_all
