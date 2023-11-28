@@ -3,6 +3,7 @@
 A proof-of-concept shell script for early detection of lookalike domain used in a third-party compromise or business email compromise.
 
 ```help
+$ ./freed -h
 Usage: freed.sh [OPTION]... DOMAIN
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 
@@ -13,10 +14,11 @@ options
   -d CHARACTER  defang character, e.g. "·" (U+00B7), "․" (U+2024), "[.]" (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i            include international domain name
+  -i DOMAIN     include domain(s) separated by comma
   -k            keep HTML result and do not send email
   -p PERIOD     period of time to look back, e.g. 30d, 24h (default)
-  -s RECIPIENT  send email to recipient, e.g. <your.gmail.account@gmail.com> (default)
+  -s RECIPIENT  send email to recipient, e.g. <freed.domain.alert@gmail.com> (default)
+  -x            show international domain name (xn--)
 ```
 
 ## Premise
@@ -54,16 +56,21 @@ Gmail SMTP service is recommended. However, the step-by-step instructions to set
 
 ## Example
 
-Running `freed.sh` on `facebook.com` to look back 100 days from the time of script run (2023-11-27). Use defang character `·` (middle dot) instead of the default `[.]`. Include detection for international domain name (homoglyphs), and keep HTML result and do not send email.
+Running `freed.sh` on `facebook.com` to look back 100 days from the time of script run (2023-11-28), with the following options:
+
+* `-d`. Use defang character `·` (middle dot) instead of the default `[.]`.
+* `-i`. Include the original domain for comparison.
+* `-k`. Keep HTML result and do not send email.
+* `-x`. Show international domain name (to expose homoglyph attacks).
 
 ```demo
-$ ./freed.sh -d '·' -i -k -p 100d facebook.com
-[2023-11-27T07:57:36Z] freed.sh has started.
-[2023-11-27T07:57:36Z] Running `urlinsane' on "facebook.com"...done
-[2023-11-27T07:57:49Z] Running `whois' on "facebook.com" (2843 variations)...done
-[2023-11-27T07:59:05Z] Sorting result by timestamp...done
-[2023-11-27T07:59:05Z] Formatting result to HTML...done
-[2023-11-27T07:59:05Z] Result in file facebook.com.insane.html
+./freed.sh -d'·' -i facebook.com -k -p 100d -x facebook.com
+[2023-11-28T07:12:43Z] freed.sh has started.
+[2023-11-28T07:12:43Z] Running `urlinsane' on "facebook.com"...done
+[2023-11-28T07:12:55Z] Running `whois' on "facebook.com" (2844 variations)...done
+[2023-11-28T07:14:12Z] Sorting result by timestamp...done
+[2023-11-28T07:14:12Z] Formatting result to HTML...done
+[2023-11-28T07:14:12Z] Result in file facebook.com.insane.html
 ```
 
 The result is sorted in descending order (from latest to earliest) by the date/time of domain creation. 
