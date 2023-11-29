@@ -6,13 +6,13 @@
 SCRIPT=$(basename "$0")
 STODAY=$(date +%s)
 
-# ACE prefix filter in IDNs
-XN="| grep -Ev '^xn--'"
-
-# REMOVE SECRETS BEFORE SHARING SCRIPT
+# SMTP configuration
 SERVER="smtp.gmail.com:587"
 SMTP_PASS="your app password from gmail"
 SMTP_USER="your.gmail.account@gmail.com"
+
+# ACE prefix filter in IDNs
+XN="| grep -Ev '^xn--'"
 
 # die gracefully
 die() {
@@ -30,7 +30,7 @@ depends() {
 
 # usage statement
 usage() {
-    cat <<-EOF
+cat <<-EOF
 Usage: $SCRIPT [OPTION]... DOMAIN
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 
@@ -239,7 +239,7 @@ EOF
 
 esac
 
-# START
+# $SCRIPT has started.
 echo "[$(timestamp)] $SCRIPT has started."
 
 # Running \`$ENGINE' on "${DOMAIN}"...
@@ -471,7 +471,7 @@ echo -n "[$(timestamp)] Formatting result to HTML..."
 
 echo "done"
 
-# Keep result and do not send email
+# Keep result and do not send email...
 if [ "${KEEP:-0}" -eq 1 ]; then
     echo "[$(timestamp)] Result in file ${DOMAIN}.${EXT}.html"
     clean_result $EXT
@@ -518,10 +518,10 @@ echo -n "[$(timestamp)] Sending email to <$RECIPIENT>..."
     "$RECIPIENT" \
     &>/dev/null && echo "done" || echo "failed"
 
-# Clean up
+# clean up
 clean_all
 
-# END
+# $SCRIPT has ended.
 echo "[$(timestamp)] $SCRIPT has ended."
 
 exit 0
