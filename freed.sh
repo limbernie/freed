@@ -101,6 +101,7 @@ if [ -n "$INCLUDE" ]; then
     INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
             | awk '{ printf "^%s$|", $0; }' \
             | sed 's/|$//')
+    INCLUDE=" || [[ \\\$domain =~ ($INCLUDE) ]]"
 fi
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
@@ -270,7 +271,7 @@ function check() {
                         | cut -d':' -f2- \\
                         | sed -r 's/^ +//')
         local ts=\$(date +%s -d \$date)
-        if [[ \$ts -ge $START && \$ts -le $STODAY ]] || [[ \$domain =~ ($INCLUDE) ]]; then
+        if [[ \$ts -ge $START && \$ts -le $STODAY ]]$INCLUDE; then
             local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" \\
                         | cut -d':' -f2- \\
                         | sed -r 's/^ +(https?:\/\/)+//' \\

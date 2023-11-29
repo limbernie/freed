@@ -31,7 +31,7 @@ It makes no sense to detect newly registered domains that looked like the domain
 
 What if we only focus on detecting newly registered domains that looked like ours?
 
-The script can then be put in a `crontab` to run every day, say at 12AM UTC. The script takes at most 2 mins to run, which is not time-consuming in my opinion because the script uses `parallel` to speed things up.
+The script can then be put in a `crontab` to run every day, say at 12AM UTC to find lookalike domains in the last 24 hours and send email alert to a recipient if there's a hit. The script takes at most 2 mins to run, which is not time-consuming in my opinion because the script uses `parallel` to speed things up.
 
 ### Dependencies
 
@@ -55,7 +55,7 @@ You can choose from three permutation engines: `dnstwist`, `urlcrazy` and `urlin
 
 You need to sign up for a SMTP service to send an email alert to a recipient.
 
-Gmail SMTP service is recommended. However, the step-by-step instructions to set up Gmail SMTP service is beyond the scope of this README.
+Gmail SMTP service is recommended because the `@gmail.com` domain should pass SPF, DKIM and DMARC checks to deliver the email alert to your recipient. However, the step-by-step instructions to set up Gmail SMTP service is beyond the scope of this README.
 
 ## Example
 
