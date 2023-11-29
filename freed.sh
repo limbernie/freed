@@ -101,7 +101,7 @@ if [ -n "$INCLUDE" ]; then
     INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
             | awk '{ printf "^%s$|", $0; }' \
             | sed 's/|$//')
-    INCLUDE=" || [[ \\\$domain =~ ($INCLUDE) ]]"
+    INCLUDE=" || [[ \$domain =~ ($INCLUDE) ]]"
 fi
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
