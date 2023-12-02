@@ -94,8 +94,7 @@ shift "$((OPTIND - 1))"
 REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
 [[ ! "$1" =~ $REGEX ]] && die "invalid domain name"
 DEFANG=${DEFANG:=[.]}
-DOMAIN=$1
-shift
+DOMAIN=$1; shift
 ENGINE=${ENGINE:=urlinsane}
 if [ -n "$INCLUDE" ]; then
     INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
@@ -107,14 +106,14 @@ PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
 
 # time arithmetic
-[[ ! $PERIOD =~ ^[0-9]+(d|h)$ ]] && die "invalid time period"
+[[ ! $PERIOD =~ ^[0-9]+[dDhH]$ ]] && die "invalid time period"
 TIME=$(grep -Eo '^[0-9]+' <<<"$PERIOD")
-UNIT=$(grep -Eo '.$' <<<"$PERIOD" | tr '[:upper:]' '[:lower:]')
+UNIT=$(grep -Eo '.$' <<<"$PERIOD")
 case $UNIT in
-'d')
+[dD])
     SDELTA=$((TIME * 24 * 60 * 60))
     ;;
-'h')
+[hH])
     SDELTA=$((TIME * 60 * 60))
     ;;
 esac
@@ -186,54 +185,54 @@ fi
 case "$ENGINE" in
 
 "dnstwist")
-    EXT=twist
-    # dnstwist.sh
-    cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-        #!/bin/bash
+EXT=twist
+# dnstwist.sh
+cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
+#!/bin/bash
 
-        DOMAIN=\$1
+DOMAIN=\$1
 
-        $DNSTWIST --format list \$DOMAIN \\
-        | sed 1d \\
-        $XN > \${DOMAIN}.${EXT}
+$DNSTWIST --format list \$DOMAIN \\
+| sed 1d \\
+$XN > \${DOMAIN}.${EXT}
 EOF
-    chmod +x "${DOMAIN}.${ENGINE}".sh
-    ;;
+chmod +x "${DOMAIN}.${ENGINE}".sh
+;;
 
 "urlcrazy")
-    EXT=crazy
-    # urlcrazy.sh
-    cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-        #!/bin/bash
+EXT=crazy
+# urlcrazy.sh
+cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
+#!/bin/bash
 
-        DOMAIN=\$1
+DOMAIN=\$1
 
-        ulimit -n 10000
+ulimit -n 10000
 
-        $URLCRAZY -n -r \${DOMAIN} \\
-        | grep -Ev '[ST]LD' \\
-        | sed -e '\$d' -e '11,\$!d' \\
-        | awk '{ print \$NF }' > \${DOMAIN}.${EXT}
+$URLCRAZY -n -r \${DOMAIN} \\
+| grep -Ev '[ST]LD' \\
+| sed -e '\$d' -e '11,\$!d' \\
+| awk '{ print \$NF }' > \${DOMAIN}.${EXT}
 EOF
-    chmod +x "${DOMAIN}.${ENGINE}".sh
-    ;;
+chmod +x "${DOMAIN}.${ENGINE}".sh
+;;
 
 "urlinsane")
-    EXT=insane
-    # urlinsane.sh
-    cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-        #!/bin/bash
+EXT=insane
+# urlinsane.sh
+cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
+#!/bin/bash
 
-        DOMAIN=\$1
+DOMAIN=\$1
 
-        $URLINSANE typo \$DOMAIN -k all -x idna -o csv \\
-        | grep -Ev '([HPS]I|TLD)' \\
-        | sed '11,\$!d' \\
-        | awk -F, '{ print \$NF }' \\
-        $XN > \${DOMAIN}.${EXT}
+$URLINSANE typo \$DOMAIN -k all -x idna -o csv \\
+| grep -Ev '([HPS]I|TLD)' \\
+| sed '11,\$!d' \\
+| awk -F, '{ print \$NF }' \\
+$XN > \${DOMAIN}.${EXT}
 EOF
-    chmod +x "${DOMAIN}.${ENGINE}".sh
-    ;;
+chmod +x "${DOMAIN}.${ENGINE}".sh
+;;
 
 *) die "invalid permutation engine" ;;
 
