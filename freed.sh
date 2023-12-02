@@ -275,7 +275,7 @@ function check() {
             local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" \\
                         | cut -d':' -f2- \\
                         | sed -r 's/^ +(https?:\/\/)+//' \\
-                        | tr 'A-Z' 'a-z')
+                        | tr '[:upper:]' '[:lower:]')
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
             local google_dns=8.8.8.8
@@ -422,7 +422,7 @@ BEGIN {
     print  "  table tr, table td { border-bottom: 1px solid #ddd; }";
     print  "  table tr { margin-bottom: 8px; }";
     print  "  table td { display: flex; }";
-    print  "  table td:before {";
+    print  "  table td::before {";
     print  "    content: attr(label);";
     print  "    float: left;";
     print  "    font-weight: bold;";
