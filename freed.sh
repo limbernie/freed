@@ -473,7 +473,7 @@ echo "done"
 
 # Keep result and do not send email...
 if [ "${KEEP:-0}" -eq 1 ]; then
-    echo "[$(timestamp)] Result in file ${DOMAIN}.${EXT}.html"
+    echo "[$(timestamp)] Result in file \"${DOMAIN}.${EXT}.html\""
     clean_result $EXT
     clean_result whois
     clean_result sorted
