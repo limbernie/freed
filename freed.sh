@@ -186,6 +186,7 @@ case "$ENGINE" in
 
 "dnstwist")
 EXT=twist
+
 # dnstwist.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
 #!/bin/bash
@@ -196,11 +197,13 @@ $DNSTWIST --format list \$DOMAIN \\
 | sed 1d \\
 $XN > \${DOMAIN}.${EXT}
 EOF
+
 chmod +x "${DOMAIN}.${ENGINE}".sh
 ;;
 
 "urlcrazy")
 EXT=crazy
+
 # urlcrazy.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
 #!/bin/bash
@@ -214,11 +217,13 @@ $URLCRAZY -n -r \${DOMAIN} \\
 | sed -e '\$d' -e '11,\$!d' \\
 | awk '{ print \$NF }' > \${DOMAIN}.${EXT}
 EOF
+
 chmod +x "${DOMAIN}.${ENGINE}".sh
 ;;
 
 "urlinsane")
 EXT=insane
+
 # urlinsane.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
 #!/bin/bash
@@ -231,6 +236,7 @@ $URLINSANE typo \$DOMAIN -k all -x idna -o csv \\
 | awk -F, '{ print \$NF }' \\
 $XN > \${DOMAIN}.${EXT}
 EOF
+
 chmod +x "${DOMAIN}.${ENGINE}".sh
 ;;
 
@@ -262,7 +268,7 @@ function defang() {
 }
 export -f defang
 
-function check() {
+function lookup() {
     local domain=\$1
     local whois="\$($WHOIS -H \$domain)"
     if  grep -Ei -m1 'creat' <<<"\$whois" &>/dev/null; then
@@ -308,9 +314,9 @@ function check() {
         fi
     fi
 }
-export -f check
+export -f lookup
 
-$PARALLEL -q -j\$THREADS check :::: \$DOMAINS 2>/dev/null
+$PARALLEL -q -j\$THREADS lookup :::: \$DOMAINS 2>/dev/null
 EOF
 chmod +x "${DOMAIN}".whois.sh
 
