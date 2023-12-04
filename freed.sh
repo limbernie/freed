@@ -96,7 +96,7 @@ REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
 DEFANG=${DEFANG:=[.]}
 DOMAIN=$1; shift
 ENGINE=${ENGINE:=urlinsane}
-if [ -n "$INCLUDE" ]; then
+if [[ "$INCLUDE" ]]; then
     INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
             | awk '{ printf "^%s$|", $0; }' \
             | sed 's/|$//')
@@ -380,7 +380,7 @@ clean_all() {
 }
 
 # check for result, if any, in ${DOMAIN}.whois
-if [ "$(wc -l "${DOMAIN}".whois | cut -d' ' -f1)" -eq 0 ]; then
+if [[ "$(wc -l "${DOMAIN}".whois | cut -d' ' -f1)" -eq 0 ]]; then
     echo "[$(timestamp)] No result. Bye!"
     clean_all
     exit 0
@@ -477,7 +477,7 @@ echo -n "[$(timestamp)] Formatting result to HTML..."
 echo "done"
 
 # Keep result and do not send email...
-if [ "${KEEP:-0}" -eq 1 ]; then
+if [[ "${KEEP:-0}" -eq 1 ]]; then
     echo "[$(timestamp)] Result in file \"${DOMAIN}.${EXT}.html\""
     clean_result $EXT
     clean_result whois
