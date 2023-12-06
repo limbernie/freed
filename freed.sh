@@ -77,6 +77,9 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     t)
         THUMBNAIL=1
+        if ! which node &>/dev/null; then
+            depends "puppeteer"
+        fi
         ;;
     x)
         XN=
@@ -292,6 +295,7 @@ function lookup() {
                         | tr '\n' ',' \\
                         | sed -e 's/,$//' -e 's/,/<br \/>/g')
             ip=\${ip:=None}
+            ip="\$(defang "\$ip")"
             local mx=\$($DIG MX \$domain +short @\$google_dns \\
                         | sed -r -e 's/^[0-9]+ //' -e 's/.\$//' \\
                         | tr '\n' ',' \\
@@ -421,7 +425,9 @@ echo "done"
 
 # thumbnail.js
 cat <<-EOF >thumbnail.js
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const stealth = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(stealth());
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -448,9 +454,9 @@ EOF
 cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".tbm1
 if [[ "${THUMBNAIL:-0}" -eq 1 ]]; then
     echo -n "[$(timestamp)] Creating thumbnails..."
-    readarray -d'\n' -t domains <<<"$(cut -d'|' -f8 <"${DOMAIN}".sorted)"
-    for domain in $domains; do
-        echo $(node thumbnail.js $domain) >> "${DOMAIN}".tbm2
+    readarray -t domains <<<"$(cut -d'|' -f8 <"${DOMAIN}".sorted)"
+    for domain in "${domains[@]}"; do
+        node thumbnail.js "$domain" >> "${DOMAIN}".tbm2
     done
     paste -d'|' "${DOMAIN}".tbm1 "${DOMAIN}".tbm2 > "${DOMAIN}".thumbnail
     echo "done"
@@ -491,7 +497,7 @@ BEGIN {
     print  "    min-width: 120px;";
     print  "  }";
     print  "}";
-    print  "img { width: 160px; height: auto; }";
+    print  "img { border: 1px solid #ddd; border-radius: 4px; padding: 5px; width: 160px; height: 120px; }";
     print  "</style>";
     print  "</head>";
     print  "<body>"
@@ -522,7 +528,7 @@ BEGIN {
     if (\$8 != "") {
         print  "        <td label=\"Thumbnail\">";
         printf "          <a target=\"_blank\" href=\"data:image/png;base64,%s\">", \$8;
-        printf "            <img src=\"data:image/png;base64,%s\">", \$8;
+        printf "            <img src=\"data:image/png;base64,%s\" alt=\"%s\">", \$8, \$3;
         print  "          </a>";
         print  "        </td>";
     }
@@ -584,11 +590,11 @@ chmod +x "${DOMAIN}".sendemail.sh
 echo -n "[$(timestamp)] Sending email to <$RECIPIENT>..."
 
 ./"${DOMAIN}".sendemail.sh \
-    "$(awk '{ print $3 }' "${DOMAIN}".sorted |
-        tr '[:lower:]' '[:upper:]' |
-        tr ',' '.' |
-        tr '\n', ',' |
-        sed -e 's/,$//' -e 's/,/, /g')" \
+    "$(awk -F'|' '{ print $3 }' "${DOMAIN}".sorted \
+        | tr '[:lower:]' '[:upper:]' \
+        | tr ',' '.' \
+        | tr '\n', ',' \
+        | sed -e 's/,$//' -e 's/,/, /g')" \
     "$RECIPIENT" \
     &>/dev/null && echo "done" || echo "failed"
 

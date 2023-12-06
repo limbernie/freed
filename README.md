@@ -70,13 +70,13 @@ Running `freed.sh` on `facebook.com` to look back 30 days from the time of scrip
 
 ```demo
 $ ./freed.sh -d'․' -i facebook.com -k -p30d -t -x facebook.com
-[2023-12-06T10:42:27Z] freed.sh has started.
-[2023-12-06T10:42:27Z] Running `urlinsane' on "facebook.com"...done
-[2023-12-06T10:42:38Z] Running `whois' on "facebook.com" (2844 variations)...done
-[2023-12-06T10:43:53Z] Sorting result by timestamp...done
-[2023-12-06T10:43:53Z] Creating thumbnails...done
-[2023-12-06T10:44:36Z] Formatting result to HTML...done
-[2023-12-06T10:44:36Z] Result in file "facebook.com.insane.html"
+[2023-12-06T16:27:25Z] freed.sh has started.
+[2023-12-06T16:27:25Z] Running `urlinsane' on "facebook.com"...done
+[2023-12-06T16:27:37Z] Running `whois' on "facebook.com" (2844 variations)...done
+[2023-12-06T16:29:18Z] Sorting result by timestamp...done
+[2023-12-06T16:29:18Z] Creating thumbnails...done
+[2023-12-06T16:30:05Z] Formatting result to HTML...done
+[2023-12-06T16:30:05Z] Result in file "facebook.com.insane.html"
 ```
 
 The result is sorted in descending order (latest to earliest) by the domain creation date/time. 
