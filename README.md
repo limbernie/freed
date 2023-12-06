@@ -18,7 +18,7 @@ options
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <freed.domain.alert@gmail.com> (default)
-  -t            show thumbnail
+  -t            show domain thumbnail
   -x            show international domain name (xn--)
 ```
 

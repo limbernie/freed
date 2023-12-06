@@ -448,9 +448,9 @@ EOF
 cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".tbm1
 if [[ "${THUMBNAIL:-0}" -eq 1 ]]; then
     echo -n "[$(timestamp)] Creating thumbnails..."
-    readarray -d'\n' -t domains <<<$(cut -d'|' -f8 <"${DOMAIN}".sorted)
-    for domain in $domains; do
-        echo "$(node thumbnail.js $domain)" >> "${DOMAIN}".tbm2
+    readarray -d'\n' -t domains <<<"$(cut -d'|' -f8 <"${DOMAIN}".sorted)"
+    for domain in "${domains[@]}"; do
+        "$(node thumbnail.js "$domain")" >> "${DOMAIN}".tbm2
     done
     paste -d'|' "${DOMAIN}".tbm1 "${DOMAIN}".tbm2 > "${DOMAIN}".thumbnail
     echo "done"
