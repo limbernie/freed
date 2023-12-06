@@ -3,7 +3,7 @@
 A proof-of-concept shell script for early detection of lookalike domain used in a third-party compromise or business email compromise.
 
 ```help
-$ ./freed -h
+$ ./freed.sh -h
 Usage: freed.sh [OPTION]... DOMAIN
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 
@@ -16,8 +16,9 @@ options
   -h            display this help and exit
   -i DOMAIN     include domain(s) separated by comma
   -k            keep HTML result and do not send email
-  -p PERIOD     period of time to look back, e.g. 30d, 24h (default)
+  -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <freed.domain.alert@gmail.com> (default)
+  -t            show thumbnail
   -x            show international domain name (xn--)
 ```
 
@@ -59,21 +60,23 @@ Gmail SMTP service is recommended because the `@gmail.com` domain would pass SPF
 
 ## Example
 
-Running `freed.sh` on `facebook.com` to look back 30 days from the time of script run (2023-12-02), with the following options:
+Running `freed.sh` on `facebook.com` to look back 30 days from the time of script run (2023-12-06), with the following options:
 
 * `-d`. Use defang character `․` (one dot leader) instead of the default `[.]` to save space.
 * `-i`. Include the original domain for comparison.
 * `-k`. Keep HTML result and do not send email.
+* `-t`. Show domain thumbnail.
 * `-x`. Show international domain name (to expose homoglyph attacks).
 
 ```demo
-$ ./freed.sh -d '․' -i facebook.com -k -p 30d -x facebook.com
-[2023-12-02T23:05:33Z] freed.sh has started.
-[2023-12-02T23:05:33Z] Running `urlinsane' on "facebook.com"...done
-[2023-12-02T23:05:46Z] Running `whois' on "facebook.com" (2844 variations)...done
-[2023-12-02T23:07:04Z] Sorting result by timestamp...done
-[2023-12-02T23:07:04Z] Formatting result to HTML...done
-[2023-12-02T23:07:04Z] Result in file "facebook.com.insane.html"
+$ ./freed.sh -d'․' -i facebook.com -k -p30d -t -x facebook.com
+[2023-12-06T10:42:27Z] freed.sh has started.
+[2023-12-06T10:42:27Z] Running `urlinsane' on "facebook.com"...done
+[2023-12-06T10:42:38Z] Running `whois' on "facebook.com" (2844 variations)...done
+[2023-12-06T10:43:53Z] Sorting result by timestamp...done
+[2023-12-06T10:43:53Z] Creating thumbnails...done
+[2023-12-06T10:44:36Z] Formatting result to HTML...done
+[2023-12-06T10:44:36Z] Result in file "facebook.com.insane.html"
 ```
 
 The result is sorted in descending order (latest to earliest) by the domain creation date/time. 

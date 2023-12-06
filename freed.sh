@@ -43,14 +43,15 @@ options
   -h            display this help and exit
   -i DOMAIN     include domain(s) separated by comma
   -k            keep HTML result and do not send email
-  -p PERIOD     period of time to look back, e.g. 30d, 24h (default)
+  -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <$SMTP_USER> (default)
+  -t            show domain thumbnail
   -x            show international domain name (xn--)
 EOF
 }
 
 # parse options
-while getopts ":d:e:hi:kp:s:x" opt; do
+while getopts ":d:e:hi:kp:s:tx" opt; do
     case $opt in
     d)
         DEFANG=$OPTARG
@@ -73,6 +74,9 @@ while getopts ":d:e:hi:kp:s:x" opt; do
         ;;
     s)
         RECIPIENT=$OPTARG
+        ;;
+    t)
+        THUMBNAIL=1
         ;;
     x)
         XN=
@@ -284,6 +288,10 @@ function lookup() {
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
             local google_dns=8.8.8.8
+            local ip=\$($DIG A \$domain +short @\$google_dns \\
+                        | tr '\n' ',' \\
+                        | sed -e 's/,$//' -e 's/,/<br \/>/g')
+            ip=\${ip:=None}
             local mx=\$($DIG MX \$domain +short @\$google_dns \\
                         | sed -r -e 's/^[0-9]+ //' -e 's/.\$//' \\
                         | tr '\n' ',' \\
@@ -304,13 +312,20 @@ function lookup() {
                 local dd="\$domain"
             fi
             dd="\$(defang "\$dd")"
-            printf "%s|%s|%s|%s|%s|%s\n" \\
+            if [[ "\$ip" != "None" ]]; then
+                domain=\$domain
+            else
+                domain=None
+            fi
+            printf "%s|%s|%s|%s|%s|%s|%s|%s\n" \\
                 "\$ts" \\
                 "\$date" \\
                 "\$dd" \\
+                "\$ip" \\
                 "\$mx" \\
                 "\$ns" \\
-                "\$rr"
+                "\$rr" \\
+                "\$domain"
         fi
     fi
 }
@@ -393,8 +408,7 @@ cat <<-EOF >"${DOMAIN}".sort.sh
 FILE=\$1
 
 awk -F'|' '{ if (\$2 != "") print \$0 }' \$FILE \
-| sort -t'|' -k1,1nr \
-| tr '|' '\t'
+| sort -t'|' -k1,1nr
 EOF
 chmod +x "${DOMAIN}".sort.sh
 
@@ -405,13 +419,55 @@ echo -n "[$(timestamp)] Sorting result by timestamp..."
 
 echo "done"
 
+# thumbnail.js
+cat <<-EOF >thumbnail.js
+const puppeteer = require('puppeteer');
+
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+(async() => {
+    const domain = process.argv[2];
+    if (domain === "None") {
+        console.log("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII");
+        process.exit();
+    }
+    const browser = await puppeteer.launch({headless: 'new'});
+    const page = await browser.newPage();
+    await page.setViewport({width: 800, height: 600});
+    await page.goto('http://www.' + domain + '/');
+    await timeout(1000);
+    const base64 = await page.screenshot({encoding: 'base64'});
+    browser.close();
+    console.log(base64);
+})();
+EOF
+
+# Creating thumbnails...
+cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".tbm1
+if [[ "${THUMBNAIL:-0}" -eq 1 ]]; then
+    echo -n "[$(timestamp)] Creating thumbnails..."
+    readarray -d'\n' -t domains <<<$(cut -d'|' -f8 <"${DOMAIN}".sorted)
+    for domain in $domains; do
+        echo "$(node thumbnail.js $domain)" >> "${DOMAIN}".tbm2
+    done
+    paste -d'|' "${DOMAIN}".tbm1 "${DOMAIN}".tbm2 > "${DOMAIN}".thumbnail
+    echo "done"
+else
+    cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}.thumbnail"
+fi
+rm thumbnail.js
+rm "${DOMAIN}".{sorted,tbm*}
+mv "${DOMAIN}".thumbnail "${DOMAIN}".sorted
+
 # format.sh
 cat <<-EOF >"${DOMAIN}".format.sh
 #!/bin/bash
 
 FILE=\$1
 
-awk -F'[\t]' '
+awk -F'|' -v thumbnail=$THUMBNAIL '
 BEGIN {
     print  "<!DOCTYPE html>";
     print  "<html lang=\"en\">";
@@ -435,6 +491,7 @@ BEGIN {
     print  "    min-width: 120px;";
     print  "  }";
     print  "}";
+    print  "img { width: 160px; height: auto; }";
     print  "</style>";
     print  "</head>";
     print  "<body>"
@@ -443,9 +500,13 @@ BEGIN {
     print  "      <tr>";
     print  "        <th>Created</th>";
     print  "        <th>Domain</th>";
+    print  "        <th>IP</th>";
     print  "        <th>MX</th>";
     print  "        <th>NS</th>";
     print  "        <th>RR</th>";
+    if (thumbnail == 1) {
+        print "        <th>Thumbnail</th>";
+    }
     print  "      </tr>";
     print  "    </thead>";
     print  "    <tbody>";
@@ -454,9 +515,17 @@ BEGIN {
     print  "      <tr>";
     printf "        <td label=\"Created\">%s</td>\n", \$2;
     printf "        <td label=\"Domain\">%s</td>\n", \$3;
-    printf "        <td label=\"MX\">%s</td>\n", \$4;
-    printf "        <td label=\"NS\">%s</td>\n", \$5;
-    printf "        <td label=\"RR\">%s</td>\n", \$6;
+    printf "        <td label=\"IP\">%s</td>\n", \$4;
+    printf "        <td label=\"MX\">%s</td>\n", \$5;
+    printf "        <td label=\"NS\">%s</td>\n", \$6;
+    printf "        <td label=\"RR\">%s</td>\n", \$7;
+    if (\$8 != "") {
+        print  "        <td label=\"Thumbnail\">";
+        printf "          <a target=\"_blank\" href=\"data:image/png;base64,%s\">", \$8;
+        printf "            <img src=\"data:image/png;base64,%s\">", \$8;
+        print  "          </a>";
+        print  "        </td>";
+    }
     print  "      </tr>";
 }
 END {
