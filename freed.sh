@@ -433,20 +433,26 @@ function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+const empty = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII";
+
 (async() => {
-    const domain = process.argv[2];
-    if (domain === "None") {
-        console.log("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII");
-        process.exit();
+    try {
+        const domain = process.argv[2];
+        if (domain === "None") {
+            console.log(empty);
+            process.exit();
+        }
+        const browser = await puppeteer.launch({headless: 'new'});
+        const page = await browser.newPage();
+        await page.setViewport({width: 800, height: 600});
+        await page.goto('http://www.' + domain + '/');
+        await timeout(1000);
+        const base64 = await page.screenshot({encoding: 'base64'});
+        browser.close();
+        console.log(base64);
+    } catch (error) { 
+        console.log(empty);
     }
-    const browser = await puppeteer.launch({headless: 'new'});
-    const page = await browser.newPage();
-    await page.setViewport({width: 800, height: 600});
-    await page.goto('http://www.' + domain + '/');
-    await timeout(1000);
-    const base64 = await page.screenshot({encoding: 'base64'});
-    browser.close();
-    console.log(base64);
 })();
 EOF
 
