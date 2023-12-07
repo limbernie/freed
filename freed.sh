@@ -92,10 +92,10 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     esac
 done
-shift "$((OPTIND - 1))"
+shift $((OPTIND - 1))
 
 # argument count
-[[ $# -eq 0 ]] && die "you must specify a domain name"
+(( $# == 0 )) && die "you must specify a domain name"
 
 # argument check; default value
 REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
