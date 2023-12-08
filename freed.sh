@@ -81,7 +81,7 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     x)
         XN=
-        which idn &>/dev/null && IDN=$(which idn) || depends "idn"
+        IDN=$(which idn) || depends "idn"
         ;;
     :)
         die "option requires an argument -- '$OPTARG'"
@@ -104,7 +104,7 @@ DOMAIN=$1; shift
 ENGINE=${ENGINE:=urlinsane}
 if [[ "$INCLUDE" ]]; then
     INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
-            | awk '{ printf "^%s$|", $0; }' \
+            | awk '{ printf "^%s$|", $0 }' \
             | sed 's/|$//')
     INCLUDE=" || [[ \$domain =~ ($INCLUDE) ]]"
 fi
@@ -113,15 +113,11 @@ RECIPIENT=${RECIPIENT:=$SMTP_USER}
 
 # time arithmetic
 [[ ! $PERIOD =~ ^[0-9]+[dDhH]$ ]] && die "invalid time period"
-TIME=$(grep -Eo '^[0-9]+' <<<"$PERIOD")
-UNIT=$(grep -Eo '.$' <<<"$PERIOD")
+TIME=${PERIOD%?}
+UNIT=${PERIOD#"$TIME"}
 case $UNIT in
-[dD])
-    SDELTA=$((TIME * 24 * 60 * 60))
-    ;;
-[hH])
-    SDELTA=$((TIME * 60 * 60))
-    ;;
+    [dD]) SDELTA=$((TIME * 24 * 60 * 60)) ;;
+    [hH]) SDELTA=$((TIME * 60 * 60)) ;;
 esac
 START=$((STODAY - SDELTA))
 
@@ -131,27 +127,27 @@ timestamp() {
 }
 
 # dependency checks
-
+# -----------------
 # dig - `sudo apt-get install bind9-dnsutils`
-which dig &>/dev/null && DIG=$(which dig) || depends "dig"
+DIG=$(which dig) || depends "dig"
 
 # dnstwist - `sudo apt-get install dnstwist`
-which dnstwist &>/dev/null && DNSTWIST=$(which dnstwist) || depends "dnstwist"
+DNSTWIST=$(which dnstwist) || depends "dnstwist"
 
 # parallel - `sudo apt-get install parallel`
-which parallel &>/dev/null && PARALLEL=$(which parallel) || depends "parallel"
+PARALLEL=$(which parallel) || depends "parallel"
 
 # sendemail - `sudo apt-get install sendemail`
-which sendemail &>/dev/null && SENDEMAIL=$(which sendemail) || depends "sendemail"
+SENDEMAIL=$(which sendemail) || depends "sendemail"
 
 # urlcrazy - `sudo apt-get install urlcrazy`
-which urlcrazy &>/dev/null && URLCRAZY=$(which urlcrazy) || depends "urlcrazy"
+URLCRAZY=$(which urlcrazy) || depends "urlcrazy"
 
 # urlinsane - `sudo apt-get install urlinsane``
-which urlinsane &>/dev/null && URLINSANE=$(which urlinsane) || depends "urlinsane"
+URLINSANE=$(which urlinsane) || depends "urlinsane"
 
 # whois - `sudo apt-get install whois`
-which whois &>/dev/null && WHOIS=$(which whois) || depends "whois"
+WHOIS=$(which whois) || depends "whois"
 
 # select permutation engine
 case "$ENGINE" in
@@ -251,24 +247,24 @@ function lookup {
         if [[ \$ts -ge $START && \$ts -le $STODAY ]]$INCLUDE; then
             local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" \\
                         | cut -d':' -f2- \\
-                        | sed -r 's/^ +(https?:\/\/)+//' \\
-                        | tr '[:upper:]' '[:lower:]')
+                        | sed -r 's/^ +(https?:\/\/)+//')
+            rr=\${rr,,}
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
-            local google_dns=8.8.8.8
-            local ip=\$($DIG A \$domain +short @\$google_dns \\
+            local dns=8.8.8.8
+            local ip=\$($DIG A \$domain +short @\$dns \\
                         | tr '\n' ',' \\
                         | sed -e 's/,$//' -e 's/,/<br \/>/g')
             ip=\${ip:=None}
             ip="\$(defang "\$ip")"
-            local mx=\$($DIG MX \$domain +short @\$google_dns \\
+            local mx=\$($DIG MX \$domain +short @\$dns \\
                         | sed -r -e 's/^[0-9]+ //' -e 's/.\$//' \\
                         | tr '\n' ',' \\
                         | sed -e 's/,$//' -e 's/,/<br \/>/g')
             [[ "\$mx" =~ error ]] && mx=Error
             mx=\${mx:=None}
             mx="\$(defang "\$mx")"
-            local ns=\$($DIG NS \$domain +short @\$google_dns \\
+            local ns=\$($DIG NS \$domain +short @\$dns \\
                         | sed -e 's/.\$//' \\
                         | tr '\n' ',' \\
                         | sed -e 's/,$//' -e 's/,/<br \/>/g')
@@ -364,7 +360,7 @@ clean_all() {
 }
 
 # check for result, if any, in ${DOMAIN}.whois
-if [[ "$(wc -l "${DOMAIN}".whois | cut -d' ' -f1)" -eq 0 ]]; then
+if (( $(wc -l "${DOMAIN}".whois | cut -d' ' -f1) == 0 )); then
     echo "[$(timestamp)] No result. Bye!"
     clean_all
     exit 0
@@ -423,7 +419,7 @@ EOF
 
 # Creating thumbnails...
 cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".tbm1
-if [[ "${THUMBNAIL:-0}" -eq 1 ]]; then
+if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
     readarray -t domains <<<"$(cut -d'|' -f8 <"${DOMAIN}".sorted)"
     for domain in "${domains[@]}"; do
@@ -523,7 +519,7 @@ echo -n "[$(timestamp)] Formatting result to HTML..."
 echo "done"
 
 # Keep result and do not send email...
-if [[ "${KEEP:-0}" -eq 1 ]]; then
+if (( ${KEEP:-0} == 1 )); then
     echo "[$(timestamp)] Result in file \"${DOMAIN}.${EXT}.html\""
     clean_result $EXT
     clean_result whois
@@ -560,14 +556,13 @@ chmod +x "${DOMAIN}".sendemail.sh
 # Sending email to <$RECIPIENT>...
 echo -n "[$(timestamp)] Sending email to <$RECIPIENT>..."
 
-./"${DOMAIN}".sendemail.sh \
-    "$(awk -F'|' '{ print $3 }' "${DOMAIN}".sorted \
-        | tr '[:lower:]' '[:upper:]' \
-        | tr ',' '.' \
-        | tr '\n', ',' \
-        | sed -e 's/,$//' -e 's/,/, /g')" \
-    "$RECIPIENT" \
-    &>/dev/null && echo "done" || echo "failed"
+# Make a list of domains; transform them to upper case and separated by comma
+while read -r domain; do
+    COMMA=${DOMAINS:+, }
+    DOMAINS="${DOMAINS}${COMMA}${domain^^}"
+done < <(awk -F'|' '{ print $3 }' "${DOMAIN}".sorted)
+
+./"${DOMAIN}".sendemail.sh "$DOMAINS" "$RECIPIENT" &>/dev/null && echo "done" || echo "failed"
 
 # clean up
 clean_all
