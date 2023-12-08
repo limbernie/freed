@@ -122,7 +122,7 @@ esac
 START=$((STODAY - SDELTA))
 
 # iso-8601 date/time format
-timestamp() {
+function timestamp {
     date +%Y-%m-%dT%H:%M:%SZ
 }
 
@@ -354,7 +354,7 @@ function clean_script {
     esac
 }
 
-clean_all() {
+function clean_all {
     clean_result
     clean_script
 }
