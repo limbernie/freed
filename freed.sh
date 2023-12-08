@@ -421,7 +421,7 @@ EOF
 cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".tbm1
 if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
-    readarray -t domains <<<"$(cut -d'|' -f8 <"${DOMAIN}".sorted)"
+    readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
         node thumbnail.js "$domain" >> "${DOMAIN}".tbm2
     done
