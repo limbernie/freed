@@ -16,17 +16,17 @@ XN="| grep -Ev '^xn--'"
 
 # die gracefully
 function die {
-    echo "$SCRIPT: $*" >&2
-    echo "Try \`$SCRIPT -h' for more information." >&2
+    echo "$SCRIPT: $*"
+    echo "Try \`$SCRIPT -h' for more information."
     exit 1
-}
+} >&2
 
 # depends "command"
 function depends {
-    echo "$SCRIPT: depends on \`$*'" >&2
-    echo "Install \`$*' and try again." >&2
+    echo "$SCRIPT: depends on \`$*'"
+    echo "Install \`$*' and try again."
     exit 1
-}
+} >&2
 
 # usage statement
 function usage {
@@ -48,7 +48,7 @@ options
   -t            show domain thumbnail
   -x            show international domain name (xn--)
 EOF
-}
+} >&2
 
 # parse options
 while getopts ":d:e:hi:kp:s:tx" opt; do
