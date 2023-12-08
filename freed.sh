@@ -230,9 +230,10 @@ THREADS=\$1
 DOMAINS=\$2
 
 function defang {
-    sed -r \\
-        -e 's/\./$DEFANG/g' \\
-        -e 's/http/hxxp/g' <<<"\$1"
+    local url=\$1
+    url=\${url//http/hxxp}
+    url=\${url//./$DEFANG}
+    echo \$url
 }
 export -f defang
 
