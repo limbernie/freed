@@ -15,21 +15,21 @@ SMTP_USER="your.gmail.account@gmail.com"
 XN="| grep -Ev '^xn--'"
 
 # die gracefully
-die() {
+function die {
     echo "$SCRIPT: $*" >&2
     echo "Try \`$SCRIPT -h' for more information." >&2
     exit 1
 }
 
 # depends "command"
-depends() {
+function depends {
     echo "$SCRIPT: depends on \`$*'" >&2
     echo "Install \`$*' and try again." >&2
     exit 1
 }
 
 # usage statement
-usage() {
+function usage {
 cat <<-EOF
 Usage: $SCRIPT [OPTION]... DOMAIN
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
@@ -77,12 +77,11 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     t)
         THUMBNAIL=1
-        if ! which node &>/dev/null; then
-            depends "puppeteer"
-        fi
+        which node &>/dev/null || depends "puppeteer"
         ;;
     x)
         XN=
+        which idn &>/dev/null && IDN=$(which idn) || depends "idn"
         ;;
     :)
         die "option requires an argument -- '$OPTARG'"
@@ -132,61 +131,27 @@ timestamp() {
 }
 
 # dependency checks
+
 # dig - `sudo apt-get install bind9-dnsutils`
-if which dig &>/dev/null; then
-    DIG=$(which dig)
-else
-    depends "dig"
-fi
+which dig &>/dev/null && DIG=$(which dig) || depends "dig"
 
 # dnstwist - `sudo apt-get install dnstwist`
-if which dnstwist &>/dev/null; then
-    DNSTWIST=$(which dnstwist)
-else
-    depends "dnstwist"
-fi
-
-# idn - `sudo apt-get install idn`
-if which idn &>/dev/null; then
-    IDN=$(which idn)
-else
-    depends "idn"
-fi
+which dnstwist &>/dev/null && DNSTWIST=$(which dnstwist) || depends "dnstwist"
 
 # parallel - `sudo apt-get install parallel`
-if which parallel &>/dev/null; then
-    PARALLEL=$(which parallel)
-else
-    depends "parallel"
-fi
+which parallel &>/dev/null && PARALLEL=$(which parallel) || depends "parallel"
 
 # sendemail - `sudo apt-get install sendemail`
-if which sendemail &>/dev/null; then
-    SENDEMAIL=$(which sendemail)
-else
-    depends "sendemail"
-fi
+which sendemail &>/dev/null && SENDEMAIL=$(which sendemail) || depends "sendemail"
 
 # urlcrazy - `sudo apt-get install urlcrazy`
-if which urlcrazy &>/dev/null; then
-    URLCRAZY=$(which urlcrazy)
-else
-    depends "urlcrazy"
-fi
+which urlcrazy &>/dev/null && URLCRAZY=$(which urlcrazy) || depends "urlcrazy"
 
 # urlinsane - `sudo apt-get install urlinsane``
-if which urlinsane &>/dev/null; then
-    URLINSANE=$(which urlinsane)
-else
-    depends "urlinsane"
-fi
+which urlinsane &>/dev/null && URLINSANE=$(which urlinsane) || depends "urlinsane"
 
 # whois - `sudo apt-get install whois`
-if which whois &>/dev/null; then
-    WHOIS=$(which whois)
-else
-    depends "whois"
-fi
+which whois &>/dev/null && WHOIS=$(which whois) || depends "whois"
 
 # select permutation engine
 case "$ENGINE" in
@@ -268,14 +233,14 @@ cat <<-EOF >"${DOMAIN}".whois.sh
 THREADS=\$1
 DOMAINS=\$2
 
-function defang() {
+function defang {
     sed -r \\
         -e 's/\./$DEFANG/g' \\
         -e 's/http/hxxp/g' <<<"\$1"
 }
 export -f defang
 
-function lookup() {
+function lookup {
     local domain=\$1
     local whois="\$($WHOIS -H \$domain)"
     if  grep -Ei -m1 'creat' <<<"\$whois" &>/dev/null; then
@@ -348,7 +313,7 @@ echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($VARIATIONS variation
 echo "done"
 
 # clean up operations
-clean_result() {
+function clean_result {
     local result=$1
     case $result in
     "$EXT")
@@ -369,7 +334,7 @@ clean_result() {
     esac
 }
 
-clean_script() {
+function clean_script {
     local script=$1
     case $script in
     "$ENGINE")
@@ -450,7 +415,7 @@ const empty = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ
         const base64 = await page.screenshot({encoding: 'base64'});
         browser.close();
         console.log(base64);
-    } catch (error) { 
+    } catch (error) {
         console.log(empty);
     }
 })();
