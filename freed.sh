@@ -237,7 +237,19 @@ function defang {
 }
 export -f defang
 
-function lookup {
+function dns {
+    $DIG \$1 \$2 +short @8.8.8.8 \\
+    | sed -r -e 's/^[0-9]+ //' -e 's/.\$//'
+}
+export -f dns
+
+function linebreak {
+    tr '\n' ',' <&0 \\
+    | sed -e 's/,\$//' -e 's/,/<br \//g'
+}
+export -f linebreak
+
+function enrich {
     local domain=\$1
     local whois="\$($WHOIS -H \$domain)"
     if  grep -Ei -m1 'creat' <<<"\$whois" &>/dev/null; then
@@ -246,43 +258,41 @@ function lookup {
                         | sed -r 's/^ +//')
         local ts=\$(date +%s -d \$date)
         if [[ \$ts -ge $START && \$ts -le $STODAY ]]$INCLUDE; then
-            local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" \\
-                        | cut -d':' -f2- \\
-                        | sed -r 's/^ +(https?:\/\/)+//')
-            rr=\${rr,,}
-            rr=\${rr:=None}
-            rr="\$(defang "\$rr")"
-            local dns=8.8.8.8
-            local ip=\$($DIG A \$domain +short @\$dns \\
-                        | tr '\n' ',' \\
-                        | sed -e 's/,$//' -e 's/,/<br \/>/g')
-            ip=\${ip:=None}
-            ip="\$(defang "\$ip")"
-            local mx=\$($DIG MX \$domain +short @\$dns \\
-                        | sed -r -e 's/^[0-9]+ //' -e 's/.\$//' \\
-                        | tr '\n' ',' \\
-                        | sed -e 's/,$//' -e 's/,/<br \/>/g')
-            [[ "\$mx" =~ error ]] && mx=Error
-            mx=\${mx:=None}
-            mx="\$(defang "\$mx")"
-            local ns=\$($DIG NS \$domain +short @\$dns \\
-                        | sed -e 's/.\$//' \\
-                        | tr '\n' ',' \\
-                        | sed -e 's/,$//' -e 's/,/<br \/>/g')
-            [[ "\$ns" =~ error ]] && ns=Error
-            ns=\${ns:=None}
-            ns="\$(defang "\$ns")"
             if [[ "\$domain" =~ ^xn-- ]]; then
                 local dd="\$domain (\`$IDN --quiet -u "\$domain"\`)"
             else
                 local dd="\$domain"
             fi
             dd="\$(defang "\$dd")"
+
+            local ip=\$(dns a \$domain | linebreak)
+            [[ "\$ip" =~ error ]] && mx=Error
+            ip=\${ip:=None}
+            ip="\$(defang "\$ip")"
+
+            local mx=\$(dns mx \$domain | linebreak)
+            [[ "\$mx" =~ error ]] && mx=Error
+            mx=\${mx:=None}
+            mx="\$(defang "\$mx")"
+
+            local ns=\$(dns ns \$domain | linebreak)
+            [[ "\$ns" =~ error ]] && ns=Error
+            ns=\${ns:=None}
+            ns="\$(defang "\$ns")"
+
+            local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" \\
+                        | cut -d':' -f2- \\
+                        | sed -r 's/^ +(https?:\/\/)+//')
+            rr=\${rr,,}
+            rr=\${rr:=None}
+            rr="\$(defang "\$rr")"
+
             if [[ "\$ip" != "None" ]]; then
                 domain=\$domain
             else
                 domain=None
             fi
+
             printf "%s|%s|%s|%s|%s|%s|%s|%s\n" \\
                 "\$ts" \\
                 "\$date" \\
@@ -295,9 +305,9 @@ function lookup {
         fi
     fi
 }
-export -f lookup
+export -f enrich
 
-$PARALLEL -q -j\$THREADS lookup :::: \$DOMAINS 2>/dev/null
+$PARALLEL -q -j\$THREADS enrich :::: \$DOMAINS 2>/dev/null
 EOF
 chmod +x "${DOMAIN}".whois.sh
 
@@ -397,23 +407,25 @@ function timeout(ms) {
 
 const empty = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII";
 
+const domain = process.argv[2];
+if (domain === "None") {
+    console.log(empty);
+    process.exit();
+}
+
 (async() => {
+    const browser = await puppeteer.launch({headless: 'new', ignoreHTTPSErrors: true});
     try {
-        const domain = process.argv[2];
-        if (domain === "None") {
-            console.log(empty);
-            process.exit();
-        }
-        const browser = await puppeteer.launch({headless: 'new'});
         const page = await browser.newPage();
         await page.setViewport({width: 800, height: 600});
         await page.goto('http://www.' + domain + '/');
-        await timeout(1000);
+        await timeout(5000);
         const base64 = await page.screenshot({encoding: 'base64'});
-        browser.close();
         console.log(base64);
     } catch (error) {
         console.log(empty);
+    } finally {
+        browser.close();
     }
 })();
 EOF
