@@ -64,7 +64,7 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         exit 0
         ;;
     i)
-        INCLUDE=$OPTARG
+        INCLUDES=$OPTARG
         ;;
     k)
         KEEP=1
@@ -102,12 +102,12 @@ REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
 DEFANG=${DEFANG:=[.]}
 DOMAIN=$1; shift
 ENGINE=${ENGINE:=urlinsane}
-if [[ "$INCLUDE" ]]; then
-    INCLUDE=$(tr ',' '\n' <<<"$INCLUDE" \
-            | awk '{ printf "^%s$|", $0 }' \
-            | sed 's/|$//')
-    INCLUDE=" || [[ \$domain =~ ($INCLUDE) ]]"
-fi
+[[ "$INCLUDES" ]] && readarray -d, -t includes < <(printf "%s" "$INCLUDES")
+for include in "${includes[@]}"; do
+    pipe=${regex:+|}
+    regex="${regex}${pipe}^${include}$"
+done
+INCLUDES=" || [[ \$domain =~ ($regex) ]]"
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
 
@@ -257,7 +257,7 @@ function enrich {
                         | cut -d':' -f2- \\
                         | sed -r 's/^ +//')
         local ts=\$(date +%s -d \$date)
-        if [[ \$ts -ge $START && \$ts -le $STODAY ]]$INCLUDE; then
+        if [[ \$ts -ge $START && \$ts -le $STODAY ]]$INCLUDES; then
             if [[ "\$domain" =~ ^xn-- ]]; then
                 local dd="\$domain (\`$IDN --quiet -u "\$domain"\`)"
             else
