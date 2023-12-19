@@ -77,7 +77,7 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     t)
         THUMBNAIL=1
-        which node &>/dev/null || depends "puppeteer"
+        NODEJS=$(which node) || depends "puppeteer"
         ;;
     x)
         XN=
@@ -280,9 +280,8 @@ function enrich {
             ns=\${ns:=None}
             ns="\$(defang "\$ns")"
 
-            local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" \\
-                        | cut -d':' -f2- \\
-                        | sed -r 's/^ +(https?:\/\/)+//')
+            local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" | cut -d':' -f2-)
+            rr=\${rr//http?\\/\\//}
             rr=\${rr,,}
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
@@ -436,7 +435,7 @@ if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
     readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
-        node thumbnail.js "$domain" >> "${DOMAIN}".tbm2
+        $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".tbm2
     done
     paste -d'|' "${DOMAIN}".tbm1 "${DOMAIN}".tbm2 > "${DOMAIN}".thumbnail
     echo "done"
