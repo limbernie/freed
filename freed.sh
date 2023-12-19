@@ -245,7 +245,7 @@ export -f dns
 
 function linebreak {
     tr '\n' ',' <&0 \\
-    | sed -e 's/,\$//' -e 's/,/<br \//g'
+    | sed -e 's/,\$//' -e 's/,/<br \/>/g'
 }
 export -f linebreak
 
@@ -404,7 +404,7 @@ function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-const empty = "data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=";
+const empty = "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=";
 
 const domain = process.argv[2];
 if (domain === "None") {
@@ -544,8 +544,8 @@ BEGIN {
     printf "        <td label=\"RR\">%s</td>\n", \$7;
     if (\$8 != "") {
         print  "        <td label=\"Thumbnail\">";
-        printf "          <a target=\"_blank\" href=\"%s\">", \$8;
-        printf "            <img src=\"%s\", alt=\"%s\"", \$8, \$3;
+        printf "          <a target=\"_blank\" href=\"%s\">\n", \$8;
+        printf "            <img alt=\"thumbnail of %s\" title=\"%s\" src=\"%s\">\n", \$3, \$3, \$8;
         print  "          </a>";
         print  "        </td>";
     }
