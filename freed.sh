@@ -266,7 +266,7 @@ function enrich {
             dd="\$(defang "\$dd")"
 
             local ip=\$(dns a \$domain | linebreak)
-            [[ "\$ip" =~ error ]] && mx=Error
+            [[ "\$ip" =~ error ]] && ip=Error
             ip=\${ip:=None}
             ip="\$(defang "\$ip")"
 
