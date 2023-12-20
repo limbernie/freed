@@ -102,12 +102,14 @@ REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
 DEFANG=${DEFANG:=[.]}
 DOMAIN=$1; shift
 ENGINE=${ENGINE:=urlinsane}
-[[ "$INCLUDES" ]] && readarray -d, -t includes < <(printf "%s" "$INCLUDES")
-for include in "${includes[@]}"; do
-    pipe=${regex:+|}
-    regex="${regex}${pipe}^${include}$"
-done
-INCLUDES=" || [[ \$domain =~ ($regex) ]]"
+if [[ "$INCLUDES" ]]; then
+    readarray -d, -t includes < <(printf "%s" "$INCLUDES")
+    for include in "${includes[@]}"; do
+        pipe=${regex:+|}
+        regex="${regex}${pipe}^${include}$"
+    done
+    INCLUDES=" || [[ \$domain =~ ($regex) ]]"
+fi
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
 
