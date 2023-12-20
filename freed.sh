@@ -97,7 +97,7 @@ shift $((OPTIND - 1))
 (( $# == 0 )) && die "you must specify a domain name"
 
 # argument check; default value
-REGEX='^[^-]{1,63}\.[a-z]{2,3}(\.[a-z]{2})?$'
+REGEX='^[^-][a-z-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?$'
 [[ ! "$1" =~ $REGEX ]] && die "invalid domain name"
 DEFANG=${DEFANG:=[.]}
 DOMAIN=$1; shift
@@ -220,7 +220,13 @@ echo "[$(timestamp)] $SCRIPT has started."
 # Running \`$ENGINE' on "${DOMAIN}"...
 echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
 
+# insert original domain
 ./"${DOMAIN}.${ENGINE}".sh "${DOMAIN}" && sed -i "1i\\$DOMAIN" "${DOMAIN}.${EXT}"
+
+# insert included domain(s) sans original domain
+for include in "${includes[@]}"; do
+    [[ "$include" != "$DOMAIN" ]] && sed -i "1i\\$include" "${DOMAIN}.${EXT}"
+done
 
 echo "done"
 
@@ -498,6 +504,7 @@ BEGIN {
     print  "<html lang=\"en\">";
     print  "<head>";
     print  "<meta charset=\"utf-8\" />";
+    print  "<meta name=\"viewport\" content=\"width=device-width\">";
     print  "<style type=\"text/css\">";
     print  "body { font-family: monospace, sans-serif; }";
     print  "th { font-weight: bold; text-align: left; }";
