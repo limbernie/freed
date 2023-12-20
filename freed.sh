@@ -498,7 +498,7 @@ BEGIN {
     print  "<html lang=\"en\">";
     print  "<head>";
     print  "<meta charset=\"utf-8\" />";
-    print  "<style>";
+    print  "<style type=\"text/css\">";
     print  "body { font-family: monospace, sans-serif; }";
     print  "th { font-weight: bold; text-align: left; }";
     print  "th, td { background: #eee; padding: 8px; }";
@@ -547,7 +547,7 @@ BEGIN {
     if (\$8 != "") {
         print  "        <td label=\"Thumbnail\">";
         printf "          <a target=\"_blank\" href=\"%s\">\n", \$8;
-        printf "            <img alt=\"thumbnail of %s\" title=\"%s\" src=\"%s\">\n", \$3, \$3, \$8;
+        printf "            <img alt=\"thumbnail of %s\" title=\"%s\" src=\"%s\" width=\"160\" height=\"120\">\n", \$3, \$3, \$8;
         print  "          </a>";
         print  "        </td>";
     }
