@@ -97,10 +97,10 @@ shift $((OPTIND - 1))
 (( $# == 0 )) && die "you must specify a domain name"
 
 # argument check; default value
-REGEX='^[^-][a-z-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?$'
-[[ ! "$1" =~ $REGEX ]] && die "invalid domain name"
+REGEX='^[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?$'
+[[ ! "${1,,}" =~ $REGEX ]] && die "invalid domain name"
 DEFANG=${DEFANG:=[.]}
-DOMAIN=$1; shift
+DOMAIN=${1,,}; shift
 ENGINE=${ENGINE:=urlinsane}
 if [[ "$INCLUDES" ]]; then
     readarray -d, -t includes < <(printf "%s" "$INCLUDES")
