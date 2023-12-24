@@ -599,14 +599,14 @@ SUBJECT="LOOKALIKE DOMAIN ALERT - \$DOMAIN"
 RECIPIENT=\${RECIPIENT:=\$SMTP_USER}
 
 $SENDEMAIL \\
-    -f "ALERT <\$SMTP_USER>" \\
-    -t "\$RECIPIENT" \\
-    -o tls=auto \\
-    -o message-charset=UTF-8 \\
-    -o message-content-type=html \\
-    -o message-file=${DOMAIN}.${EXT}.html \\
-    -u "\$SUBJECT" \\
-    -s "\$SERVER" \\
+    -f  "ALERT <\$SMTP_USER>" \\
+    -t  "\$RECIPIENT" \\
+    -o  tls=auto \\
+    -o  message-charset=UTF-8 \\
+    -o  message-content-type=html \\
+    -o  message-file=${DOMAIN}.${EXT}.html \\
+    -u  "\$SUBJECT" \\
+    -s  "\$SERVER" \\
     -xu "\$SMTP_USER" \\
     -xp "\$SMTP_PASS"
 EOF
