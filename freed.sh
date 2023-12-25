@@ -247,6 +247,7 @@ export -f defang
 
 function dns {
     $DIG \$1 \$2 +short @8.8.8.8 \\
+    | sort -n \\
     | sed -r -e 's/^[0-9]+ //' -e 's/.\$//'
 }
 export -f dns
@@ -476,20 +477,20 @@ const minimal_args = [
 EOF
 
 # Creating thumbnails...
-cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".1
+cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".part1
 if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
     readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
-        $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".2
+        $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2
     done
-    paste -d'|' "${DOMAIN}".1 "${DOMAIN}".2 > "${DOMAIN}".thumbnail
+    paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 > "${DOMAIN}".thumbnail
     echo "done"
 else
     cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}.thumbnail"
 fi
 rm thumbnail.js
-rm "${DOMAIN}".{sorted,1,2}
+rm "${DOMAIN}".{sorted,part*}
 mv "${DOMAIN}".thumbnail "${DOMAIN}".sorted
 
 # format.sh
