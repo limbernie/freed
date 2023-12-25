@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -
 #
 # freed.sh - free domain shell script
 # Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
@@ -159,7 +159,7 @@ EXT=twist
 
 # dnstwist.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-#!/bin/bash
+#!/bin/bash -
 
 DOMAIN=\$1
 
@@ -176,7 +176,7 @@ EXT=crazy
 
 # urlcrazy.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-#!/bin/bash
+#!/bin/bash -
 
 DOMAIN=\$1
 
@@ -196,7 +196,7 @@ EXT=insane
 
 # urlinsane.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-#!/bin/bash
+#!/bin/bash -
 
 DOMAIN=\$1
 
@@ -232,7 +232,7 @@ echo "done"
 
 # whois.sh
 cat <<-EOF >"${DOMAIN}".whois.sh
-#!/bin/bash
+#!/bin/bash -
 
 JOBS=\$1
 DOMAINS=\$2
@@ -386,7 +386,7 @@ fi
 
 # sort.sh
 cat <<-EOF >"${DOMAIN}".sort.sh
-#!/bin/bash
+#!/bin/bash -
 
 FILE=\$1
 
@@ -494,7 +494,7 @@ mv "${DOMAIN}".thumbnail "${DOMAIN}".sorted
 
 # format.sh
 cat <<-EOF >"${DOMAIN}".format.sh
-#!/bin/bash
+#!/bin/bash -
 
 FILE=\$1
 
