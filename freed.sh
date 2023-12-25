@@ -97,18 +97,18 @@ shift $((OPTIND - 1))
 (( $# == 0 )) && die "you must specify a domain name"
 
 # argument check; default value
-REGEX='^[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?$'
-[[ ! "${1,,}" =~ $REGEX ]] && die "invalid domain name"
+DOMAIN_REGEX='^[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?$'
+[[ ! "${1,,}" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
 DEFANG=${DEFANG:=[.]}
 DOMAIN=${1,,}; shift
 ENGINE=${ENGINE:=urlinsane}
 if [[ "$INCLUDES" ]]; then
     readarray -d, -t includes < <(printf "%s" "$INCLUDES")
     for include in "${includes[@]}"; do
-        pipe=${regex:+|}
-        regex="${regex}${pipe}^${include}$"
+        PIPE=${INCLUDE_REGEX:+|}
+        INCLUDE_REGEX="${INCLUDE_REGEX}${PIPE}^${include}$"
     done
-    INCLUDES=" || [[ \$domain =~ ($regex) ]]"
+    INCLUDES=" || [[ \$domain =~ ($INCLUDE_REGEX) ]]"
 fi
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
@@ -234,7 +234,7 @@ echo "done"
 cat <<-EOF >"${DOMAIN}".whois.sh
 #!/bin/bash
 
-THREADS=\$1
+JOBS=\$1
 DOMAINS=\$2
 
 function defang {
@@ -314,7 +314,7 @@ function enrich {
 }
 export -f enrich
 
-$PARALLEL -q -j\$THREADS enrich :::: \$DOMAINS 2>/dev/null
+$PARALLEL -q -j\$JOBS enrich :::: \$DOMAINS 2>/dev/null
 EOF
 chmod +x "${DOMAIN}".whois.sh
 
@@ -322,7 +322,7 @@ chmod +x "${DOMAIN}".whois.sh
 VARIATIONS=$(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1)
 echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($VARIATIONS variations)..."
 
-./"${DOMAIN}".whois.sh 64 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois
+./"${DOMAIN}".whois.sh 0 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois
 
 echo "done"
 
@@ -476,20 +476,20 @@ const minimal_args = [
 EOF
 
 # Creating thumbnails...
-cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".tbm1
+cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".1
 if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
     readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
-        $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".tbm2
+        $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".2
     done
-    paste -d'|' "${DOMAIN}".tbm1 "${DOMAIN}".tbm2 > "${DOMAIN}".thumbnail
+    paste -d'|' "${DOMAIN}".1 "${DOMAIN}".2 > "${DOMAIN}".thumbnail
     echo "done"
 else
     cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}.thumbnail"
 fi
 rm thumbnail.js
-rm "${DOMAIN}".{sorted,tbm*}
+rm "${DOMAIN}".{sorted,1,2}
 mv "${DOMAIN}".thumbnail "${DOMAIN}".sorted
 
 # format.sh
