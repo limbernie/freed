@@ -220,13 +220,17 @@ echo "[$(timestamp)] $SCRIPT has started."
 # Running \`$ENGINE' on "${DOMAIN}"...
 echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
 
-# insert original domain
+# insert original domain after permutation
 ./"${DOMAIN}.${ENGINE}".sh "${DOMAIN}" && sed -i "1i\\$DOMAIN" "${DOMAIN}.${EXT}"
 
 # insert included domain(s) sans original domain
 for include in "${includes[@]}"; do
     [[ "$include" != "$DOMAIN" ]] && sed -i "1i\\$include" "${DOMAIN}.${EXT}"
 done
+
+# dedup
+sort -u "${DOMAIN}.${EXT}" > "${DOMAIN}".tmp
+mv "${DOMAIN}".tmp "${DOMAIN}.${EXT}"
 
 echo "done"
 
@@ -253,8 +257,12 @@ function dns {
 export -f dns
 
 function linebreak {
-    tr '\n' ',' <&0 \\
-    | sed -e 's/,\$//' -e 's/,/<br \/>/g'
+    readarray -t elements <&0
+    for element in "\${elements[@]}"; do
+        break=\${html:+<br />}
+        html="\${html}\${break}\${element}"
+    done
+    echo \$html
 }
 export -f linebreak
 
@@ -321,7 +329,7 @@ chmod +x "${DOMAIN}".whois.sh
 
 # Running `whois' on "${DOMAIN}"...
 VARIATIONS=$(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1)
-echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($VARIATIONS variations)..."
+echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($((--VARIATIONS)) variations)..."
 
 ./"${DOMAIN}".whois.sh 0 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois
 
