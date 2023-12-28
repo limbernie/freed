@@ -165,7 +165,7 @@ DOMAIN=\$1
 
 $DNSTWIST --format list \$DOMAIN \\
 | sed 1d \\
-$XN > \${DOMAIN}.${EXT}
+$XN >\${DOMAIN}.${EXT}
 EOF
 
 chmod +x "${DOMAIN}.${ENGINE}".sh
@@ -185,7 +185,7 @@ ulimit -n 10000
 $URLCRAZY -n -r \${DOMAIN} \\
 | grep -Ev '[ST]LD' \\
 | sed -e '\$d' -e '11,\$!d' \\
-| awk '{ print \$NF }' > \${DOMAIN}.${EXT}
+| awk '{ print \$NF }' >\${DOMAIN}.${EXT}
 EOF
 
 chmod +x "${DOMAIN}.${ENGINE}".sh
@@ -204,7 +204,7 @@ $URLINSANE typo \$DOMAIN -k all -x idna -o csv \\
 | grep -Ev '([HPS]I|TLD)' \\
 | sed '11,\$!d' \\
 | awk -F, '{ print \$NF }' \\
-$XN > \${DOMAIN}.${EXT}
+$XN >\${DOMAIN}.${EXT}
 EOF
 
 chmod +x "${DOMAIN}.${ENGINE}".sh
@@ -229,7 +229,7 @@ for include in "${includes[@]}"; do
 done
 
 # dedup
-sort -u "${DOMAIN}.${EXT}" > "${DOMAIN}".tmp
+sort -u "${DOMAIN}.${EXT}" >"${DOMAIN}".tmp
 mv "${DOMAIN}".tmp "${DOMAIN}.${EXT}"
 
 echo "done"
@@ -485,17 +485,17 @@ const minimal_args = [
 EOF
 
 # Creating thumbnails...
-cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}".part1
+cut -d'|' -f1-7 <"${DOMAIN}".sorted >"${DOMAIN}".part1
 if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
     readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
         $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2
     done
-    paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 > "${DOMAIN}".thumbnail
+    paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 >"${DOMAIN}".thumbnail
     echo "done"
 else
-    cut -d'|' -f1-7 < "${DOMAIN}".sorted > "${DOMAIN}.thumbnail"
+    cut -d'|' -f1-7 <"${DOMAIN}".sorted >"${DOMAIN}.thumbnail"
 fi
 rm thumbnail.js
 rm "${DOMAIN}".{sorted,part*}
