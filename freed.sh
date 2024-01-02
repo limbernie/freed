@@ -1,4 +1,4 @@
-#!/bin/bash -
+#!/usr/bin/bash -
 #
 # freed.sh - free domain shell script
 # Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
