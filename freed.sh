@@ -159,7 +159,7 @@ EXT=twist
 
 # dnstwist.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-#!/bin/bash -
+#!/usr/bin/bash -
 
 DOMAIN=\$1
 
@@ -176,7 +176,7 @@ EXT=crazy
 
 # urlcrazy.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-#!/bin/bash -
+#!/usr/bin/bash -
 
 DOMAIN=\$1
 
@@ -196,7 +196,7 @@ EXT=insane
 
 # urlinsane.sh
 cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
-#!/bin/bash -
+#!/usr/bin/bash -
 
 DOMAIN=\$1
 
@@ -236,7 +236,7 @@ echo "done"
 
 # whois.sh
 cat <<-EOF >"${DOMAIN}".whois.sh
-#!/bin/bash -
+#!/usr/bin/bash -
 
 JOBS=\$1
 DOMAINS=\$2
@@ -395,7 +395,7 @@ fi
 
 # sort.sh
 cat <<-EOF >"${DOMAIN}".sort.sh
-#!/bin/bash -
+#!/usr/bin/bash -
 
 FILE=\$1
 
@@ -503,7 +503,7 @@ mv "${DOMAIN}".thumbnail "${DOMAIN}".sorted
 
 # format.sh
 cat <<-EOF >"${DOMAIN}".format.sh
-#!/bin/bash -
+#!/usr/bin/bash -
 
 FILE=\$1
 
