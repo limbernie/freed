@@ -3,13 +3,13 @@
 # freed.sh - free domain shell script
 # Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 #
-SCRIPT=$(basename "$0")
+SCRIPT=${0##*/}
 STODAY=$(date +%s)
 
 # SMTP configuration
-SERVER="smtp.gmail.com:587"
-SMTP_PASS="your app password from gmail"
 SMTP_USER="your.gmail.account@gmail.com"
+SMTP_PASS="your app password from gmail"
+SMTP_SERV="smtp.gmail.com:587"
 
 # ACE prefix filter in IDNs
 XN="| grep -Ev '^xn--'"
@@ -21,33 +21,42 @@ function die {
     exit 1
 } >&2
 
-# depends "command"
+# depends on `command'
 function depends {
-    echo "$SCRIPT: depends on \`$*'"
-    echo "Install \`$*' and try again."
+    if (( $# == 1 )); then
+        echo "$SCRIPT: depends on \`$1'"
+        echo "Install \`$1' and try again."
+    else
+        echo "$SCRIPT depends on the following:"
+        for command; do
+            echo "  - $command"
+        done
+        echo "Install them and try again."
+    fi
     exit 1
 } >&2
 
 # usage statement
 function usage {
 cat <<-EOF
-Usage: $SCRIPT [OPTION]... DOMAIN
+Usage: $SCRIPT [OPTION]... [DOMAIN]
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 
 positional argument
   DOMAIN        target domain name
 
 options
-  -d CHARACTER  defang character, e.g. "·" (U+00B7), "․" (U+2024), "[.]" (default)
+  -d DEFANG     defang character/string, e.g. '·' (U+00B7), '[.]' (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i DOMAIN     include domain(s) separated by comma
+  -i INCLUDES   include domain(s) separated by comma in the operation
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <$SMTP_USER> (default)
-  -t            show domain thumbnail
-  -x            show international domain name (xn--)
+  -t            show thumbnail
+  -x            show internationalized domain name (IDN)
 EOF
+exit 0
 } >&2
 
 # parse options
@@ -61,7 +70,6 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     h)
         usage
-        exit 0
         ;;
     i)
         INCLUDES=$OPTARG
@@ -77,7 +85,7 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     t)
         THUMBNAIL=1
-        NODEJS=$(which node) || depends "puppeteer"
+        NODEJS=$(which node) || depends nodejs puppeteer puppeteer-extra puppeteer-extra-plugin-stealth
         ;;
     x)
         XN=
@@ -93,18 +101,18 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
 done
 shift $((OPTIND - 1))
 
-# argument count
-(( $# == 0 )) && die "you must specify a domain name"
-
-# argument check; default value
-DOMAIN_REGEX='^[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?$'
-[[ ! "${1,,}" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
+# argument check and default values
 DEFANG=${DEFANG:=[.]}
-DOMAIN=${1,,}; shift
+DOMAIN=${1:-result}; shift
+DOMAIN=${DOMAIN,,}
+DOMAIN_REGEX='^(result|[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?)$'
+[[ ! "$DOMAIN" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
 ENGINE=${ENGINE:=urlinsane}
 if [[ "$INCLUDES" ]]; then
+    INCLUDES=${INCLUDES,,}
     readarray -d, -t includes < <(printf "%s" "$INCLUDES")
     for include in "${includes[@]}"; do
+        [[ ! "$include" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
         PIPE=${INCLUDE_REGEX:+|}
         INCLUDE_REGEX="${INCLUDE_REGEX}${PIPE}^${include}$"
     done
@@ -214,18 +222,35 @@ chmod +x "${DOMAIN}.${ENGINE}".sh
 
 esac
 
-# $SCRIPT has started.
-echo "[$(timestamp)] $SCRIPT has started."
+if [[ "$DOMAIN" != "result" ]]; then
 
-# Running \`$ENGINE' on "${DOMAIN}"...
-echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
+    # $SCRIPT has started.
+    echo "[$(timestamp)] $SCRIPT has started."
 
-# insert original domain after permutation
-./"${DOMAIN}.${ENGINE}".sh "${DOMAIN}" && sed -i "1i\\$DOMAIN" "${DOMAIN}.${EXT}"
+    # Running \`$ENGINE' on "${DOMAIN}"...
+    echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
 
-# insert included domain(s) sans original domain
+    # insert original domain after permutation
+    ./"${DOMAIN}.${ENGINE}".sh "${DOMAIN}" && sed -i "1i\\$DOMAIN" "${DOMAIN}.${EXT}"
+
+elif [[ "$DOMAIN" == "result" && "$INCLUDES" ]]; then
+
+    # $SCRIPT has started.
+    echo "[$(timestamp)] $SCRIPT has started."
+
+    # Running without permutation...
+    echo -n "[$(timestamp)] Running without permutation..." && echo > "${DOMAIN}.${EXT}"
+
+else
+
+    rm "${DOMAIN}.${ENGINE}".sh
+    die "invalid operation"
+
+fi
+
+# insert included domain(s)
 for include in "${includes[@]}"; do
-    [[ "$include" != "$DOMAIN" ]] && sed -i "1i\\$include" "${DOMAIN}.${EXT}"
+    sed -i "1i\\$include" "${DOMAIN}.${EXT}"
 done
 
 # dedup
@@ -340,7 +365,7 @@ function clean_result {
     local result=$1
     case $result in
     "$EXT")
-        rm -rf "${DOMAIN}.${EXT}"
+        rm -rf "${DOMAIN}".${EXT}
         ;;
     "whois")
         rm -rf "${DOMAIN}".whois
@@ -349,10 +374,10 @@ function clean_result {
         rm -rf "${DOMAIN}".sorted
         ;;
     "html")
-        rm -rf "${DOMAIN}.${EXT}".html
+        rm -rf "${DOMAIN}".html
         ;;
     *)
-        rm -rf "${DOMAIN}".{"${EXT}",whois,sorted,"${EXT}".html}
+        rm -rf "${DOMAIN}".{${EXT},whois,sorted,html}
         ;;
     esac
 }
@@ -361,7 +386,7 @@ function clean_script {
     local script=$1
     case $script in
     "$ENGINE")
-        rm -rf "${DOMAIN}.${ENGINE}".sh
+        rm -rf "${DOMAIN}"."${ENGINE}".sh
         ;;
     "whois")
         rm -rf "${DOMAIN}".whois.sh
@@ -376,14 +401,14 @@ function clean_script {
         rm -rf "${DOMAIN}".sendemail.sh
         ;;
     *)
-        rm -rf "${DOMAIN}".{"${ENGINE}",whois,sort,format,sendemail}.sh
+        rm -rf "${DOMAIN}".{"$ENGINE",whois,sort,format,sendemail}.sh
         ;;
     esac
 }
 
 function clean_all {
-    clean_result
-    clean_script
+    clean_result all
+    clean_script all
 }
 
 # check for result, if any, in ${DOMAIN}.whois
@@ -490,7 +515,7 @@ if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
     readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
-        $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2
+        NODE_PATH=$(npm root -g) $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2
     done
     paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 >"${DOMAIN}".thumbnail
     echo "done"
@@ -582,17 +607,17 @@ chmod +x "${DOMAIN}".format.sh
 # Formatting result to HTML...
 echo -n "[$(timestamp)] Formatting result to HTML..."
 
-./"${DOMAIN}".format.sh "${DOMAIN}".sorted >"${DOMAIN}.${EXT}".html
+./"${DOMAIN}".format.sh "${DOMAIN}".sorted >"${DOMAIN}".html
 
 echo "done"
 
 # Keep result and do not send email...
 if (( ${KEEP:-0} == 1 )); then
-    echo "[$(timestamp)] Result in file \"${DOMAIN}.${EXT}.html\""
+    echo "[$(timestamp)] Result in file \"${DOMAIN}.html\"."
     clean_result $EXT
     clean_result whois
     clean_result sorted
-    clean_script "$@"
+    clean_script all
     exit 0
 fi
 
@@ -600,9 +625,9 @@ fi
 cat <<-EOF >"${DOMAIN}".sendemail.sh
 DOMAIN=\$1
 RECIPIENT=\$2
-SERVER="$SERVER"
 SMTP_USER="$SMTP_USER"
 SMTP_PASS="$SMTP_PASS"
+SMTP_SERV="$SMTP_SERV"
 SUBJECT="LOOKALIKE DOMAIN ALERT - \$DOMAIN"
 
 RECIPIENT=\${RECIPIENT:=\$SMTP_USER}
@@ -613,9 +638,9 @@ $SENDEMAIL \\
     -o  tls=auto \\
     -o  message-charset=UTF-8 \\
     -o  message-content-type=html \\
-    -o  message-file=${DOMAIN}.${EXT}.html \\
+    -o  message-file=${DOMAIN}.html \\
     -u  "\$SUBJECT" \\
-    -s  "\$SERVER" \\
+    -s  "\$SMTP_SERV" \\
     -xu "\$SMTP_USER" \\
     -xp "\$SMTP_PASS"
 EOF
