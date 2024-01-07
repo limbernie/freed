@@ -28,13 +28,18 @@ To pull off an attack or to achieve action on objectives in a business email com
 
 The idea is simple.
 
-It makes no sense to detect newly registered domains that looked like the domains of the counter parties since that number could easily fall into hundreds, if not more, an unmanageable situation.
-
-What if the focus is to detect newly registered domains that looked like the organization?
+It makes no sense to detect newly registered domains that looked like the domains of the counter parties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting newly registered domains that looked like the organization instead.
 
 The script can then be put in a `crontab` to run every day, say at 12AM UTC to find lookalike domains in the last 24 hours and send an email alert to a recipient if there's a hit.
 
-The script uses `parallel` to speed things up, which in my testing takes no more than three minutes.
+The script uses `parallel` to speed things up, which takes no more than three minutes in a single vCPU virtual machine running Kali Linux.
+
+### Difference between a parked domain and a weaponized domain
+
+| Domain     | Created | MX Record                          |
+|:-----------|:--------|:-----------------------------------|
+| Parked     | Recent  | No                                 |
+| Weaponized | Recent  | Yes (free email hosting providers) |
 
 ### Dependencies
 
@@ -58,7 +63,7 @@ You can choose a permutation engine from three permutation engines: `dnstwist`, 
 
 To send an email alert to a recipient, you need to sign up for a SMTP service.
 
-Gmail SMTP service is recommended because the `@gmail.com` domain would pass SPF, DKIM and DMARC checks to deliver the email alert to a recipient (or yourself for testing). The step-by-step instructions to set up Gmail SMTP service is beyond the scope of this README.
+Gmail SMTP service is recommended because the `gmail.com` domain would pass SPF, DKIM and DMARC checks to deliver the email alert to a recipient (or yourself for testing). The step-by-step instructions to set up Gmail SMTP service is beyond the scope of this README.
 
 ## Example
 
