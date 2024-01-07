@@ -30,7 +30,11 @@ The idea is simple.
 
 It makes no sense to detect newly registered domains that looked like the domains of the counter parties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting newly registered domains that looked like the organization instead.
 
-The script can then be put in a `crontab` to run every day, say at 12AM UTC to find lookalike domains in the last 24 hours and send an email alert to a recipient if there's a hit.
+The script can then be put in a `crontab(5)` to run every day, say at 12 a.m. UTC to find lookalike domains of the organization in the last twenty-four hours and send an email alert to a recipient if there's a hit.
+
+```
+0 0 * * * /path/to/freed.sh -s recipient@example.com
+```
 
 The script uses `parallel` to speed things up, which takes no more than three minutes in a single vCPU virtual machine running Kali Linux.
 
