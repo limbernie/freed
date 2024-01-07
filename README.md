@@ -4,22 +4,22 @@ A proof-of-concept shell script for early detection of lookalike domain used in 
 
 ```help
 $ ./freed.sh -h
-Usage: freed.sh [OPTION]... DOMAIN
+Usage: freed.sh [OPTION]... [DOMAIN]
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
 
 positional argument
   DOMAIN        target domain name
 
 options
-  -d CHARACTER  defang character, e.g. "·" (U+00B7), "․" (U+2024), "[.]" (default)
+  -d DEFANG     defang character/string, e.g. '·' (U+00B7), '[.]' (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i DOMAIN     include domain(s) separated by comma
+  -i INCLUDES   include domain(s) separated by comma in the operation
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
-  -s RECIPIENT  send email to recipient, e.g. <freed.domain.alert@gmail.com> (default)
-  -t            show domain thumbnail
-  -x            show international domain name (xn--)
+  -s RECIPIENT  send email to recipient, e.g. <your.gmail.account@gmail.com> (default)
+  -t            show thumbnail
+  -x            show internationalized domain name (IDN)
 ```
 
 ## Premise
@@ -64,8 +64,8 @@ Running `freed.sh` on `facebook.com` to look back 30 days from the time of scrip
 * `-d`. Use defang character `․` (one dot leader) instead of the default `[.]` to save space.
 * `-i`. Include the original domain for comparison.
 * `-k`. Keep HTML result and do not send email.
-* `-t`. Show domain thumbnail.
-* `-x`. Show international domain name (to expose homoglyph attacks).
+* `-t`. Show thumbnail.
+* `-x`. Show internationalized domain name (to expose homoglyph attacks).
 
 ```demo
 $ ./freed.sh -d․ -i facebook.com -k -p30d -t -x facebook.com
