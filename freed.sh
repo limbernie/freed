@@ -53,8 +53,8 @@ options
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <$SMTP_USER> (default)
-  -t            show thumbnail
-  -x            show internationalized domain name (IDN)
+  -t            display thumbnail in HTML result
+  -x            display internationalized domain name (IDN) in HTML result
 EOF
 exit 0
 } >&2
