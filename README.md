@@ -64,8 +64,8 @@ Running `freed.sh` on `facebook.com` to look back 30 days from the time of scrip
 * `-d`. Use defang character `․` (one dot leader) instead of the default `[.]` to save space.
 * `-i`. Include the original domain for comparison.
 * `-k`. Keep HTML result and do not send email.
-* `-t`. Show thumbnail.
-* `-x`. Show internationalized domain name (to expose homoglyph attacks).
+* `-t`. Display thumbnail in HTML result.
+* `-x`. Display internationalized domain name in HTML result to expose homoglyph attacks.
 
 ```demo
 $ ./freed.sh -d․ -i facebook.com -k -p30d -t -x facebook.com
