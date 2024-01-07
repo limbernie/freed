@@ -24,7 +24,7 @@ options
 
 ## Premise
 
-To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, the threat actor must be tactically placed in the middle of email communications between an organization and the counter party, also known as man-in-the-email attack. A necessary condition for this attack to take place is to register new domains or to update expired ones that look like the domains of the organization and its counter party, which to the untrained eye, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, may be difficult to spot in an email.
+To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, an adversary must be tactically placed in the middle of email communications between an organization and the counter party, also known as man-in-the-email attack. A necessary condition for this attack to take place is to register new domains or to update expired ones that look like the domains of the organization and its counter party, which to the untrained eye, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, may be difficult to spot in an email.
 
 The idea is simple.
 
@@ -86,7 +86,7 @@ $ ./freed.sh -d․ -i facebook.com -k -p30d -t -x facebook.com
 [2023-12-08T03:53:28Z] Result in file "facebook.com.insane.html"
 ```
 
-The result is sorted in descending order (latest to earliest) by the domain creation date/time. 
+The result is sorted in descending order (youngest to oldest) by the domain creation date/time. 
 
 RR stands for Registrar, and is shown as the Registrar's URL, if any, from WHOIS.
 
