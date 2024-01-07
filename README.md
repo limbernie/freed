@@ -44,6 +44,7 @@ The script depends on the following programs:
 4. [sendemail](https://github.com/mogaal/sendemail)
 5. [urlcrazy](https://github.com/urbanadventurer/urlcrazy)
 6. [urlinsane](https://github.com/ziazon/urlinsane)
+7. [whois](https://github.com/rfc1036/whois)
 
 You should be able to get these programs from your Linux distribution.
 
