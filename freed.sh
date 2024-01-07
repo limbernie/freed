@@ -580,7 +580,11 @@ BEGIN {
 {
     print  "      <tr>";
     printf "        <td label=\"Created\">%s</td>\n", \$2;
-    printf "        <td label=\"Domain\">%s</td>\n", \$3;
+    if (\$3 == "${DOMAIN//./$DEFANG}") {
+        printf "        <td label=\"Domain\">%s (original)</td>\n", \$3;
+    } else {
+        printf "        <td label=\"Domain\">%s</td>\n", \$3;
+    }
     printf "        <td label=\"IP\">%s</td>\n", \$4;
     printf "        <td label=\"MX\">%s</td>\n", \$5;
     printf "        <td label=\"NS\">%s</td>\n", \$6;
