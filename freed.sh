@@ -257,7 +257,7 @@ done
 sort -u "${DOMAIN}.${EXT}" >"${DOMAIN}".tmp
 mv "${DOMAIN}".tmp "${DOMAIN}.${EXT}"
 
-echo "done"
+echo "ok"
 
 # whois.sh
 cat <<-EOF >"${DOMAIN}".whois.sh
@@ -358,7 +358,7 @@ echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($((--VARIATIONS)) var
 
 ./"${DOMAIN}".whois.sh 0 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois
 
-echo "done"
+echo "ok"
 
 # clean up operations
 function clean_result {
@@ -434,7 +434,7 @@ echo -n "[$(timestamp)] Sorting result by timestamp..."
 
 ./"${DOMAIN}".sort.sh "${DOMAIN}".whois >"${DOMAIN}".sorted
 
-echo "done"
+echo "ok"
 
 # thumbnail.js
 cat <<-EOF >thumbnail.js
@@ -515,10 +515,10 @@ if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
     readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
-        NODE_PATH=$(npm root -g) $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2
+        NODE_PATH=$(npm root -g) $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2 || echo
     done
     paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 >"${DOMAIN}".thumbnail
-    echo "done"
+    echo "ok"
 else
     cut -d'|' -f1-7 <"${DOMAIN}".sorted >"${DOMAIN}.thumbnail"
 fi
@@ -613,7 +613,7 @@ echo -n "[$(timestamp)] Formatting result to HTML..."
 
 ./"${DOMAIN}".format.sh "${DOMAIN}".sorted >"${DOMAIN}".html
 
-echo "done"
+echo "ok"
 
 # Keep result and do not send email...
 if (( ${KEEP:-0} == 1 )); then
@@ -659,7 +659,7 @@ while read -r domain; do
     DOMAINS="${DOMAINS}${COMMA}${domain^^}"
 done < <(awk -F'|' '{ print $3 }' "${DOMAIN}".sorted)
 
-./"${DOMAIN}".sendemail.sh "$DOMAINS" "$RECIPIENT" &>/dev/null && echo "done" || echo "failed"
+./"${DOMAIN}".sendemail.sh "$DOMAINS" "$RECIPIENT" &>/dev/null && echo "ok" || echo "failed"
 
 # clean up
 clean_all
