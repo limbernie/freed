@@ -30,7 +30,7 @@ The idea is simple.
 
 It makes no sense to detect newly registered domains that looked like the domains of the counter parties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting newly registered domains that looked like the organization instead.
 
-The script can then be put in a `crontab(5)` to run every day, say at 12 a.m. UTC to find lookalike domains of the organization in the last twenty-four hours and send an email alert to a recipient if there's a hit.
+The script can then be put in `crontab(5)` to run daily at midnight to find lookalike domains of the organization in the last twenty-four hours and send an email alert to a recipient if there's a hit.
 
 ```
 0 0 * * * /path/to/freed.sh -s recipient@example.com
@@ -67,7 +67,7 @@ You can choose a permutation engine from three permutation engines: `dnstwist`, 
 
 To send an email alert to a recipient, you need to sign up for a SMTP service.
 
-Gmail SMTP service is recommended because the `gmail.com` domain would pass SPF, DKIM and DMARC checks to deliver the email alert to a recipient (or yourself for testing). The step-by-step instructions to set up Gmail SMTP service is beyond the scope of this README.
+Gmail SMTP service is recommended because the `gmail.com` domain would pass SPF, DKIM and DMARC checks to deliver the email alert to a recipient (or `your.gmail.account@gmail.com` by default). The step-by-step instructions to set up Gmail SMTP service is beyond the scope of this README.
 
 ## Example
 
@@ -90,7 +90,7 @@ $ ./freed.sh -d․ -i facebook.com -k -p30d -t -x facebook.com
 [2023-12-08T03:53:28Z] Result in file "facebook.com.insane.html"
 ```
 
-The result is sorted in descending order (youngest to oldest) by the domain creation date/time. 
+The result is sorted in descending order by the domain creation date/time (from youngest domain to oldest domain).
 
 RR stands for Registrar, and is shown as the Registrar's URL, if any, from WHOIS.
 
