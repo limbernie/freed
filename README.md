@@ -2,7 +2,7 @@
 
 A proof-of-concept shell script for early detection of lookalike domain utilized in a business email compromise or third-party compromise.
 
-```
+```help
 $ ./freed.sh -h
 Usage: freed.sh [OPTION]... [DOMAIN]
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
@@ -45,7 +45,7 @@ The script uses `parallel` to speed things up, which takes no more than three mi
 | Parked     | Recent  | No                                 |
 | Weaponized | Recent  | Yes (email services<sup>1</sup>)   |
 
-[[1]](https://www.trendmicro.com/en_fi/research/21/j/analyzing-email-services-abused-for-business-email-compromise.html) _Trend Micro: Analyzing Email Services Abused for Business Email Compromise_
+[<sup>1</sup>](https://www.trendmicro.com/en_fi/research/21/j/analyzing-email-services-abused-for-business-email-compromise.html) _Trend Micro: Analyzing Email Services Abused for Business Email Compromise_
 
 ### Dependencies
 
