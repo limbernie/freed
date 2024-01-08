@@ -2,7 +2,7 @@
 
 A proof-of-concept shell script for early detection of lookalike domain utilized in a business email compromise or third-party compromise.
 
-```help
+```
 $ ./freed.sh -h
 Usage: freed.sh [OPTION]... [DOMAIN]
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
@@ -24,11 +24,11 @@ options
 
 ## Premise
 
-To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, an adversary must be tactically placed in the middle of email communications between an organization and the counter party, also known as man-in-the-email attack. A necessary condition for this attack to take place is to register new domains or to update expired ones that look like the domains of the organization and its counter party, which to the untrained eye, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, may be difficult to spot in an email.
+To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, an adversary must be tactically placed in the middle of email communications between an organization and its counterparty, also known as man-in-the-email attack. A necessary condition for this attack to take place is to register new domains or to update expired ones that look like the domains of the organization and its counterparty, which to the untrained eye, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, may be difficult to spot in an email.
 
 The idea is simple.
 
-It makes no sense to detect newly registered domains that looked like the domains of the counter parties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting newly registered domains that looked like the organization instead.
+It makes no sense to detect newly registered domains that looked like the domains of the counterparties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting newly registered domains that looked like the organization instead.
 
 The script can then be put in `crontab(5)` to run daily at midnight to find lookalike domains of the organization in the last twenty-four hours and send an email alert to a recipient if there's a hit.
 
@@ -43,7 +43,9 @@ The script uses `parallel` to speed things up, which takes no more than three mi
 | Domain     | Created | MX Record                          |
 |:-----------|:--------|:-----------------------------------|
 | Parked     | Recent  | No                                 |
-| Weaponized | Recent  | Yes (free email hosting providers) |
+| Weaponized | Recent  | Yes (email services<sup>1</sup>)   |
+
+[[1]](https://www.trendmicro.com/en_fi/research/21/j/analyzing-email-services-abused-for-business-email-compromise.html) _Trend Micro: Analyzing Email Services Abused for Business Email Compromise_
 
 ### Dependencies
 
@@ -79,7 +81,7 @@ Running `freed.sh` on `facebook.com` to look back 30 days from the time of scrip
 * `-t`. Display thumbnail in HTML result.
 * `-x`. Display internationalized domain name in HTML result to expose homoglyph attacks.
 
-```demo
+```
 $ ./freed.sh -d․ -i facebook.com -k -p30d -t -x facebook.com
 [2023-12-08T03:50:55Z] freed.sh has started.
 [2023-12-08T03:50:55Z] Running `urlinsane' on "facebook.com"...done
