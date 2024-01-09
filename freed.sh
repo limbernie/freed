@@ -255,9 +255,7 @@ done
 
 # dedup
 sort -u "${DOMAIN}.${EXT}" >"${DOMAIN}".tmp
-mv "${DOMAIN}".tmp "${DOMAIN}.${EXT}"
-
-echo "ok"
+mv "${DOMAIN}".tmp "${DOMAIN}.${EXT}" && echo "OK" || echo "FAIL"
 
 # whois.sh
 cat <<-EOF >"${DOMAIN}".whois.sh
@@ -356,9 +354,7 @@ chmod +x "${DOMAIN}".whois.sh
 VARIATIONS=$(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1)
 echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($((--VARIATIONS)) variations)..."
 
-./"${DOMAIN}".whois.sh 0 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois
-
-echo "ok"
+./"${DOMAIN}".whois.sh 0 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois && echo "OK" || echo "FAIL"
 
 # clean up operations
 function clean_result {
@@ -432,9 +428,7 @@ chmod +x "${DOMAIN}".sort.sh
 # Sorting result by timestamp...
 echo -n "[$(timestamp)] Sorting result by timestamp..."
 
-./"${DOMAIN}".sort.sh "${DOMAIN}".whois >"${DOMAIN}".sorted
-
-echo "ok"
+./"${DOMAIN}".sort.sh "${DOMAIN}".whois >"${DOMAIN}".sorted && echo "OK" || echo "FAIL"
 
 # thumbnail.js
 cat <<-EOF >thumbnail.js
@@ -517,8 +511,7 @@ if (( ${THUMBNAIL:-0} == 1 )); then
     for domain in "${domains[@]}"; do
         NODE_PATH=$(npm root -g) $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2 || echo
     done
-    paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 >"${DOMAIN}".thumbnail
-    echo "ok"
+    paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 >"${DOMAIN}".thumbnail && echo "OK" || echo "FAIL"
 else
     cut -d'|' -f1-7 <"${DOMAIN}".sorted >"${DOMAIN}.thumbnail"
 fi
@@ -611,9 +604,7 @@ chmod +x "${DOMAIN}".format.sh
 # Formatting result to HTML...
 echo -n "[$(timestamp)] Formatting result to HTML..."
 
-./"${DOMAIN}".format.sh "${DOMAIN}".sorted >"${DOMAIN}".html
-
-echo "ok"
+./"${DOMAIN}".format.sh "${DOMAIN}".sorted >"${DOMAIN}".html && echo "OK" || echo "FAIL"
 
 # Keep result and do not send email...
 if (( ${KEEP:-0} == 1 )); then
@@ -659,7 +650,7 @@ while read -r domain; do
     DOMAINS="${DOMAINS}${COMMA}${domain^^}"
 done < <(awk -F'|' '{ print $3 }' "${DOMAIN}".sorted)
 
-./"${DOMAIN}".sendemail.sh "$DOMAINS" "$RECIPIENT" &>/dev/null && echo "ok" || echo "failed"
+./"${DOMAIN}".sendemail.sh "$DOMAINS" "$RECIPIENT" &>/dev/null && echo "OK" || echo "FAIL"
 
 # clean up
 clean_all
