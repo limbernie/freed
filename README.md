@@ -24,11 +24,11 @@ options
 
 ## Premise
 
-To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, an adversary must be tactically placed in the middle of email communications between an organization and its counterparty, also known as man-in-the-email attack. A necessary condition for this attack to take place is to register new domains or to update expired ones that look like the domains of the organization and its counterparty, which to the untrained eye, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, may be difficult to spot in an email.
+To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, an adversary must be placed tactically in the middle of email communications between an organization and its counterparty, also known as man-in-the-email attack. A necessary condition for this attack to take place, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, is to register new domains or to update expired ones that look like the domains of the organization and its counterparty, which to the untrained eye, may be difficult to spot in an email.
 
 The idea is simple.
 
-It makes no sense to detect newly registered domains that looked like the domains of the counterparties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting newly registered domains that looked like the organization instead.
+It makes no sense to detect lookalike domains of the counterparties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting lookalike domains of the organization instead.
 
 The script can then be put in `crontab(5)` to run daily at midnight to find lookalike domains of the organization in the last twenty-four hours and send an email alert to a recipient if there's a hit.
 
