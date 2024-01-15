@@ -73,7 +73,7 @@ Gmail SMTP service is recommended because the `gmail.com` domain would pass SPF,
 
 ## Example
 
-Running `freed.sh` on `facebook.com` to look back thirty days from the time of script run (2023-12-08T03:50:55Z), with the following options:
+Running `freed.sh` on `facebook.com` to look back sixty days from the time of script run (2024-01-15T09:52:05Z), with the following options:
 
 * `-d`. Use defang character `․` (one dot leader) instead of the default `[.]` to save space.
 * `-i`. Include the original domain for comparison.
@@ -82,18 +82,16 @@ Running `freed.sh` on `facebook.com` to look back thirty days from the time of s
 * `-x`. Display internationalized domain name in HTML result to expose homoglyph attacks.
 
 ```
-$ ./freed.sh -d․ -i facebook.com -k -p30d -t -x facebook.com
-[2023-12-08T03:50:55Z] freed.sh has started.
-[2023-12-08T03:50:55Z] Running `urlinsane' on "facebook.com"...OK
-[2023-12-08T03:51:09Z] Running `whois' on "facebook.com" (2844 variations)...OK
-[2023-12-08T03:52:38Z] Sorting result by timestamp...OK
-[2023-12-08T03:52:38Z] Creating thumbnails...OK
-[2023-12-08T03:53:28Z] Formatting result to HTML...OK
-[2023-12-08T03:53:28Z] Result in file "facebook.com.html".
+$ ./freed.sh -d․ -i facebook.com -k -p 60d -t -x facebook.com
+[2024-01-15T09:52:05Z] freed.sh started in alert mode.
+[2024-01-15T09:52:05Z] Running `urlinsane' on "facebook.com"...OK
+[2024-01-15T09:52:17Z] Running `whois' on "facebook.com" (2843 variations)...OK
+[2024-01-15T09:53:36Z] Sorting result by timestamp...OK
+[2024-01-15T09:53:36Z] Creating thumbnails...OK
+[2024-01-15T09:56:05Z] Formatting result to HTML...OK
+[2024-01-15T09:56:05Z] Result in file "facebook.com.html".
 ```
 
 The result is sorted in descending order by the domain creation date/time (from youngest domain to oldest domain).
-
-RR stands for Registrar, and is shown as the Registrar's URL, if any, from WHOIS.
 
 ![facebook.com](facebook.com-demo.png)
