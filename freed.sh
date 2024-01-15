@@ -224,8 +224,8 @@ esac
 
 if [[ "$DOMAIN" != "result" ]]; then
 
-    # $SCRIPT has started.
-    echo "[$(timestamp)] $SCRIPT has started."
+    # $SCRIPT started in alert mode.
+    echo "[$(timestamp)] $SCRIPT started in alert mode."
 
     # Running \`$ENGINE' on "${DOMAIN}"...
     echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
@@ -235,8 +235,8 @@ if [[ "$DOMAIN" != "result" ]]; then
 
 elif [[ "$DOMAIN" == "result" && "$INCLUDES" ]]; then
 
-    # $SCRIPT has started.
-    echo "[$(timestamp)] $SCRIPT has started."
+    # $SCRIPT started in analysis mode.
+    echo "[$(timestamp)] $SCRIPT started in analysis mode."
 
     # Running without permutation...
     echo -n "[$(timestamp)] Running without permutation..." && echo > "${DOMAIN}.${EXT}"
@@ -256,6 +256,17 @@ done
 # dedup
 sort -u "${DOMAIN}.${EXT}" >"${DOMAIN}".tmp
 mv "${DOMAIN}".tmp "${DOMAIN}.${EXT}" && echo "OK" || echo "FAIL"
+
+# similar.py
+cat <<-EOF >similar.py
+from difflib import SequenceMatcher
+import sys
+
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
+print(f"{round(similar(sys.argv[1], sys.argv[2]), 4):.2%}")
+EOF
 
 # whois.sh
 cat <<-EOF >"${DOMAIN}".whois.sh
@@ -289,14 +300,19 @@ function linebreak {
 }
 export -f linebreak
 
+function similar {
+    echo \$(/usr/bin/python3 similar.py \$1 \$2)
+}
+export -f similar
+
 function enrich {
     local domain=\$1
     local whois="\$($WHOIS -H \$domain)"
     if  grep -Ei -m1 'creat' <<<"\$whois" &>/dev/null; then
-        local date=\$(grep -Ei -m1 'creat' <<<"\$whois" \\
+        local d8=\$(grep -Ei -m1 'creat' <<<"\$whois" \\
                         | cut -d':' -f2- \\
                         | sed -r 's/^ +//')
-        local ts=\$(date +%s -d \$date)
+        local ts=\$(date +%s -d \$d8)
         if [[ \$ts -ge $START && \$ts -le $STODAY ]]$INCLUDES; then
             if [[ "\$domain" =~ ^xn-- ]]; then
                 local dd="\$domain (\`$IDN --quiet -u "\$domain"\`)"
@@ -321,10 +337,12 @@ function enrich {
             ns="\$(defang "\$ns")"
 
             local rr=\$(grep -Ei -m1 'registrar url:' <<<"\$whois" | cut -d':' -f2-)
-            rr=\${rr//http?\\/\\//}
+            rr=\${rr##*/}
             rr=\${rr,,}
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
+
+            ss="\$(similar "\$domain" "${DOMAIN/result/}")"
 
             if [[ "\$ip" != "None" ]]; then
                 domain=\$domain
@@ -332,14 +350,15 @@ function enrich {
                 domain=None
             fi
 
-            printf "%s|%s|%s|%s|%s|%s|%s|%s\n" \\
+            printf "%s|%s|%s|%s|%s|%s|%s|%s|%s\n" \\
                 "\$ts" \\
-                "\$date" \\
+                "\$d8" \\
                 "\$dd" \\
                 "\$ip" \\
                 "\$mx" \\
                 "\$ns" \\
                 "\$rr" \\
+                "\$ss" \\
                 "\$domain"
         fi
     fi
@@ -398,6 +417,7 @@ function clean_script {
         ;;
     *)
         rm -rf "${DOMAIN}".{"$ENGINE",whois,sort,format,sendemail}.sh
+        rm -rf similar.py
         ;;
     esac
 }
@@ -504,16 +524,16 @@ const minimal_args = [
 EOF
 
 # Creating thumbnails...
-cut -d'|' -f1-7 <"${DOMAIN}".sorted >"${DOMAIN}".part1
+cut -d'|' -f1-8 <"${DOMAIN}".sorted >"${DOMAIN}".part1
 if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
-    readarray -t domains < <(cut -d'|' -f8 <"${DOMAIN}".sorted)
+    readarray -t domains < <(cut -d'|' -f9 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
         NODE_PATH=$(npm root -g) $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2 || echo
     done
     paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 >"${DOMAIN}".thumbnail && echo "OK" || echo "FAIL"
 else
-    cut -d'|' -f1-7 <"${DOMAIN}".sorted >"${DOMAIN}.thumbnail"
+    cut -d'|' -f1-8 <"${DOMAIN}".sorted >"${DOMAIN}.thumbnail"
 fi
 rm thumbnail.js
 rm "${DOMAIN}".{sorted,part*}
@@ -562,7 +582,8 @@ BEGIN {
     print  "        <th>IP</th>";
     print  "        <th>MX</th>";
     print  "        <th>NS</th>";
-    print  "        <th>RR</th>";
+    print  "        <th>Registrar</th>";
+    print  "        <th>Similar</th>";
     if (thumbnail == 1) {
         print "        <th>Thumbnail</th>";
     }
@@ -581,11 +602,12 @@ BEGIN {
     printf "        <td label=\"IP\">%s</td>\n", \$4;
     printf "        <td label=\"MX\">%s</td>\n", \$5;
     printf "        <td label=\"NS\">%s</td>\n", \$6;
-    printf "        <td label=\"RR\">%s</td>\n", \$7;
-    if (\$8 != "") {
+    printf "        <td label=\"Registrar\">%s</td>\n", \$7;
+    printf "        <td label=\"Similar\">%s</td>\n", \$8;
+    if (\$9 != "") {
         print  "        <td label=\"Thumbnail\">";
-        printf "          <a target=\"_blank\" href=\"%s\">\n", \$8;
-        printf "            <img alt=\"%s\" title=\"%s\" src=\"%s\" width=\"160\" height=\"120\">\n", \$3, \$3, \$8;
+        printf "          <a target=\"_blank\" href=\"%s\">\n", \$9;
+        printf "            <img alt=\"%s\" title=\"%s\" src=\"%s\" width=\"160\" height=\"120\">\n", \$3, \$3, \$9;
         print  "          </a>";
         print  "        </td>";
     }
