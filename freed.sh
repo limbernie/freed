@@ -209,7 +209,7 @@ cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
 DOMAIN=\$1
 
 $URLINSANE typo \$DOMAIN -k all -x idna -o csv \\
-| grep -Ev '([HPS]I|TLD)' \\
+| grep -Ev '([HP]I|TLD)' \\
 | sed '11,\$!d' \\
 | awk -F, '{ print \$NF }' \\
 $XN >\${DOMAIN}.${EXT}
