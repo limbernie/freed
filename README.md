@@ -73,7 +73,7 @@ Gmail SMTP service is recommended because the `gmail.com` domain would pass SPF,
 
 ## Example
 
-Running `freed.sh` on `facebook.com` to look back sixty days from the time of script run (2024-01-15T09:52:05Z), with the following options:
+Running `freed.sh` on `facebook.com` to look back sixty days from the time of script run, with the following options:
 
 * `-d`. Use defang character `․` (one dot leader) instead of the default `[.]` to save space.
 * `-i`. Include the original domain for comparison.
@@ -82,7 +82,7 @@ Running `freed.sh` on `facebook.com` to look back sixty days from the time of sc
 * `-x`. Display internationalized domain name in HTML result to expose homoglyph attacks.
 
 ```
-$ ./freed.sh -d․ -i facebook.com -k -p 60d -t -x facebook.com
+$ ./freed.sh -d ․ -i facebook.com -k -p 60d -t -x facebook.com
 [2024-01-15T09:52:05Z] freed.sh started in alert mode.
 [2024-01-15T09:52:05Z] Running `urlinsane' on "facebook.com"...OK
 [2024-01-15T09:52:17Z] Running `whois' on "facebook.com" (2843 variations)...OK
