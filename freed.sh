@@ -583,10 +583,10 @@ BEGIN {
     print  "        <th>MX</th>";
     print  "        <th>NS</th>";
     print  "        <th>Registrar</th>";
-    print  "        <th>Similarity</th>";
-    if (thumbnail == 1) {
-        print "        <th>Thumbnail</th>";
-    }
+    if (\$8 != "")
+        print  "        <th>Similarity</th>";
+    if (thumbnail == 1)
+        print  "        <th>Thumbnail</th>";
     print  "      </tr>";
     print  "    </thead>";
     print  "    <tbody>";
@@ -603,7 +603,8 @@ BEGIN {
     printf "        <td label=\"MX\">%s</td>\n", \$5;
     printf "        <td label=\"NS\">%s</td>\n", \$6;
     printf "        <td label=\"Registrar\">%s</td>\n", \$7;
-    printf "        <td label=\"Similarity\">%s</td>\n", \$8;
+    if (\$8 != "")
+        printf "        <td label=\"Similarity\">%s</td>\n", \$8;
     if (\$9 != "") {
         print  "        <td label=\"Thumbnail\">";
         printf "          <a target=\"_blank\" href=\"%s\">\n", \$9;
