@@ -342,7 +342,7 @@ function enrich {
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
 
-            ss="\$(similar "\$domain" "${DOMAIN/result/}")"
+            ss="\$(similar "\$domain" "${DOMAIN/result/$BASE_DOMAIN}")"
 
             if [[ "\$ip" != "None" ]]; then
                 domain=\$domain
@@ -545,7 +545,7 @@ cat <<-EOF >"${DOMAIN}".format.sh
 
 FILE=\$1
 
-awk -F'|' -v thumbnail=$THUMBNAIL '
+awk -F'|' -v similarity=${DOMAIN/result/$BASE_DOMAIN} -v thumbnail=$THUMBNAIL '
 BEGIN {
     print  "<!DOCTYPE html>";
     print  "<html lang=\"en\">";
@@ -583,7 +583,7 @@ BEGIN {
     print  "        <th>MX</th>";
     print  "        <th>NS</th>";
     print  "        <th>Registrar</th>";
-    if (\$8 != "")
+    if (similarity != "")
         print  "        <th>Similarity</th>";
     if (thumbnail == 1)
         print  "        <th>Thumbnail</th>";
