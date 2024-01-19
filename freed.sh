@@ -49,7 +49,7 @@ options
   -d DEFANG     defang character/string, e.g. '·' (U+00B7), '[.]' (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i INCLUDES   include domain(s) separated by comma in the operation
+  -i INCLUDES   include (domains/file with domains) separated by (comma/newline)
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <$SMTP_USER> (default)
@@ -85,7 +85,11 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         ;;
     t)
         THUMBNAIL=1
-        NODEJS=$(which node) || depends nodejs puppeteer puppeteer-extra puppeteer-extra-plugin-stealth
+        NODEJS=$(which node) || depends \
+            nodejs \
+            puppeteer \
+            puppeteer-extra \
+            puppeteer-extra-plugin-stealth
         ;;
     x)
         XN=
@@ -108,16 +112,17 @@ DOMAIN=${DOMAIN,,}
 DOMAIN_REGEX='^(result|[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?)$'
 [[ ! "$DOMAIN" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
 ENGINE=${ENGINE:=urlinsane}
-if [[ "$INCLUDES" ]]; then
-    INCLUDES=${INCLUDES,,}
+if [[ -f "$INCLUDES" ]]; then
+    readarray -t includes <"$INCLUDES"
+else
     readarray -d, -t includes < <(printf "%s" "$INCLUDES")
-    for include in "${includes[@]}"; do
-        [[ ! "$include" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
-        PIPE=${INCLUDE_REGEX:+|}
-        INCLUDE_REGEX="${INCLUDE_REGEX}${PIPE}^${include}$"
-    done
-    INCLUDES=" || [[ \$domain =~ ($INCLUDE_REGEX) ]]"
 fi
+for include in "${includes[@]}"; do
+    [[ ! "${include,,}" =~ $DOMAIN_REGEX ]] && die "invalid domain name or file"
+    PIPE=${INCLUDE_REGEX:+|}
+    INCLUDE_REGEX="${INCLUDE_REGEX}${PIPE}${include,,}"
+done
+INCLUDES=" || [[ \$domain =~ ^($INCLUDE_REGEX)$ ]]"
 PERIOD=${PERIOD:=24h}
 RECIPIENT=${RECIPIENT:=$SMTP_USER}
 
@@ -239,7 +244,7 @@ elif [[ "$DOMAIN" == "result" && "$INCLUDES" ]]; then
     echo "[$(timestamp)] $SCRIPT started in analysis mode."
 
     # Running without permutation...
-    echo -n "[$(timestamp)] Running without permutation..." && echo > "${DOMAIN}.${EXT}"
+    echo -n "[$(timestamp)] Running without permutation..." && echo >"${DOMAIN}.${EXT}"
 
 else
 
@@ -250,7 +255,7 @@ fi
 
 # insert included domain(s)
 for include in "${includes[@]}"; do
-    sed -i "1i\\$include" "${DOMAIN}.${EXT}"
+    sed -i "1i\\${include,,}" "${DOMAIN}.${EXT}"
 done
 
 # dedup
@@ -259,13 +264,31 @@ mv "${DOMAIN}".tmp "${DOMAIN}.${EXT}" && echo "OK" || echo "FAIL"
 
 # similar.py
 cat <<-EOF >similar.py
-from difflib import SequenceMatcher
 import sys
 
-def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
+try:
+    import textdistance as td
+except ImportError:
+    sys.exit(1)
 
-print(f"{round(similar(sys.argv[1], sys.argv[2]), 4):.2%}")
+def similar(a, b):
+    return td.levenshtein.normalized_similarity(a, b)
+
+result = similar(sys.argv[1], sys.argv[2])
+
+print("N/A" if result == 0 else f"{round(result, 4):.2%}")
+EOF
+
+# soundex.py
+cat <<-EOF >soundex.py
+import sys
+
+try:
+    import jellyfish as jf
+except ImportError:
+    sys.exit(1)
+
+print(jf.metaphone(sys.argv[1]))
 EOF
 
 # whois.sh
@@ -274,6 +297,8 @@ cat <<-EOF >"${DOMAIN}".whois.sh
 
 JOBS=\$1
 DOMAINS=\$2
+
+python=\$(which python3)
 
 function defang {
     local url=\$1
@@ -300,10 +325,10 @@ function linebreak {
 }
 export -f linebreak
 
-function similar {
-    echo \$(/usr/bin/python3 similar.py \$1 \$2)
+function error {
+    echo "ImportError: No module named '\$*'"
 }
-export -f similar
+export -f error
 
 function enrich {
     local domain=\$1
@@ -342,7 +367,8 @@ function enrich {
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
 
-            ss="\$(similar "\$domain" "${DOMAIN/result/$BASE_DOMAIN}")"
+            ss=\$(python similar.py "\$domain" "${DOMAIN/result/$BASE_DOMAIN}" || error "textdistance")
+            sx=\$(python soundex.py "\$domain" || error "jellyfish")
 
             if [[ "\$ip" != "None" ]]; then
                 domain=\$domain
@@ -350,7 +376,7 @@ function enrich {
                 domain=None
             fi
 
-            printf "%s|%s|%s|%s|%s|%s|%s|%s|%s\n" \\
+            printf "%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n" \\
                 "\$ts" \\
                 "\$d8" \\
                 "\$dd" \\
@@ -359,6 +385,7 @@ function enrich {
                 "\$ns" \\
                 "\$rr" \\
                 "\$ss" \\
+                "\$sx" \\
                 "\$domain"
         fi
     fi
@@ -368,12 +395,6 @@ export -f enrich
 $PARALLEL -q -j\$JOBS enrich :::: \$DOMAINS 2>/dev/null
 EOF
 chmod +x "${DOMAIN}".whois.sh
-
-# Running `whois' on "${DOMAIN}"...
-VARIATIONS=$(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1)
-echo -n "[$(timestamp)] Running \`whois' on \"${DOMAIN}\" ($((--VARIATIONS)) variations)..."
-
-./"${DOMAIN}".whois.sh 0 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois && echo "OK" || echo "FAIL"
 
 # clean up operations
 function clean_result {
@@ -417,7 +438,7 @@ function clean_script {
         ;;
     *)
         rm -rf "${DOMAIN}".{"$ENGINE",whois,sort,format,sendemail}.sh
-        rm -rf similar.py
+        rm -rf {similar,soundex}.py
         ;;
     esac
 }
@@ -426,6 +447,19 @@ function clean_all {
     clean_result all
     clean_script all
 }
+
+# check if there is something to do; if not, bail out early
+if (( $(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1) == 1 )); then
+    echo "[$(timestamp)] Nothing to analyze. Bye!"
+    clean_all
+    exit 0
+fi
+
+# Running `whois' on "${DOMAIN}"...
+TARGETS=$(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1)
+echo -n "[$(timestamp)] Running \`whois' on $((--TARGETS)) targets..."
+
+./"${DOMAIN}".whois.sh 0 "${DOMAIN}.${EXT}" >"${DOMAIN}".whois && echo "OK" || echo "FAIL"
 
 # check for result, if any, in ${DOMAIN}.whois
 if (( $(wc -l "${DOMAIN}".whois | cut -d' ' -f1) == 0 )); then
@@ -524,16 +558,16 @@ const minimal_args = [
 EOF
 
 # Creating thumbnails...
-cut -d'|' -f1-8 <"${DOMAIN}".sorted >"${DOMAIN}".part1
+cut -d'|' -f1-9 <"${DOMAIN}".sorted >"${DOMAIN}".part1
 if (( ${THUMBNAIL:-0} == 1 )); then
     echo -n "[$(timestamp)] Creating thumbnails..."
-    readarray -t domains < <(cut -d'|' -f9 <"${DOMAIN}".sorted)
+    readarray -t domains < <(cut -d'|' -f10 <"${DOMAIN}".sorted)
     for domain in "${domains[@]}"; do
         NODE_PATH=$(npm root -g) $NODEJS thumbnail.js "$domain" >> "${DOMAIN}".part2 || echo
     done
     paste -d'|' "${DOMAIN}".part1 "${DOMAIN}".part2 >"${DOMAIN}".thumbnail && echo "OK" || echo "FAIL"
 else
-    cut -d'|' -f1-8 <"${DOMAIN}".sorted >"${DOMAIN}.thumbnail"
+    cut -d'|' -f1-9 <"${DOMAIN}".sorted >"${DOMAIN}.thumbnail"
 fi
 rm thumbnail.js
 rm "${DOMAIN}".{sorted,part*}
@@ -545,7 +579,7 @@ cat <<-EOF >"${DOMAIN}".format.sh
 
 FILE=\$1
 
-awk -F'|' -v similarity=${DOMAIN/result/$BASE_DOMAIN} -v thumbnail=$THUMBNAIL '
+awk -F'|' -v thumbnail=$THUMBNAIL '
 BEGIN {
     print  "<!DOCTYPE html>";
     print  "<html lang=\"en\">";
@@ -583,8 +617,8 @@ BEGIN {
     print  "        <th>MX</th>";
     print  "        <th>NS</th>";
     print  "        <th>Registrar</th>";
-    if (similarity != "")
-        print  "        <th>Similarity</th>";
+    print  "        <th>Similar</th>";
+    print  "        <th>Soundex</th>";
     if (thumbnail == 1)
         print  "        <th>Thumbnail</th>";
     print  "      </tr>";
@@ -603,12 +637,12 @@ BEGIN {
     printf "        <td label=\"MX\">%s</td>\n", \$5;
     printf "        <td label=\"NS\">%s</td>\n", \$6;
     printf "        <td label=\"Registrar\">%s</td>\n", \$7;
-    if (\$8 != "")
-        printf "        <td label=\"Similarity\">%s</td>\n", \$8;
-    if (\$9 != "") {
+    printf "        <td label=\"Similar\">%s</td>\n", \$8;
+    printf "        <td label=\"Soundex\">%s</td>\n", \$9;
+    if (\$10 != "") {
         print  "        <td label=\"Thumbnail\">";
-        printf "          <a target=\"_blank\" href=\"%s\">\n", \$9;
-        printf "            <img alt=\"%s\" title=\"%s\" src=\"%s\" width=\"160\" height=\"120\">\n", \$3, \$3, \$9;
+        printf "          <a target=\"_blank\" href=\"%s\">\n", \$10;
+        printf "            <img alt=\"%s\" title=\"%s\" src=\"%s\" width=\"160\" height=\"120\">\n", \$3, \$3, \$10;
         print  "          </a>";
         print  "        </td>";
     }
