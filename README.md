@@ -14,7 +14,7 @@ options
   -d DEFANG     defang character/string, e.g. '·' (U+00B7), '[.]' (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i INCLUDES   include domain(s) separated by comma in the operation
+  -i INCLUDES   include (domains/file with domains) separated by (comma/newline)
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <your.gmail.account@gmail.com> (default)
