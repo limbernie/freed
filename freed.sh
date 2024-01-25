@@ -272,7 +272,7 @@ except ImportError:
     sys.exit(1)
 
 def similar(a, b):
-    return td.levenshtein.normalized_similarity(a, b)
+    return td.damerau_levenshtein.normalized_similarity(a, b)
 
 result = similar(sys.argv[1], sys.argv[2])
 
