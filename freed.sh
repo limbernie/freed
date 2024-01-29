@@ -613,7 +613,7 @@ BEGIN {
     print  "      <tr>";
     print  "        <th>Created</th>";
     print  "        <th>Domain</th>";
-    print  "        <th>IP</th>";
+    print  "        <th>A/CNAME</th>";
     print  "        <th>MX</th>";
     print  "        <th>NS</th>";
     print  "        <th>Registrar</th>";
@@ -633,7 +633,7 @@ BEGIN {
     } else {
         printf "        <td label=\"Domain\">%s</td>\n", \$3;
     }
-    printf "        <td label=\"IP\">%s</td>\n", \$4;
+    printf "        <td label=\"A/CNAME\">%s</td>\n", \$4;
     printf "        <td label=\"MX\">%s</td>\n", \$5;
     printf "        <td label=\"NS\">%s</td>\n", \$6;
     printf "        <td label=\"Registrar\">%s</td>\n", \$7;
