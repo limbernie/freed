@@ -238,7 +238,7 @@ if [[ "$DOMAIN" != "result" ]]; then
     # insert original domain after permutation
     ./"${DOMAIN}.${ENGINE}".sh "${DOMAIN}" && sed -i "1i\\$DOMAIN" "${DOMAIN}.${EXT}"
 
-elif [[ "$DOMAIN" == "result" && "$INCLUDES" ]]; then
+elif [[ "$DOMAIN" == "result" && "${includes[*]}" ]]; then
 
     # $SCRIPT started in analysis mode.
     echo "[$(timestamp)] $SCRIPT started in analysis mode."
