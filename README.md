@@ -2,7 +2,7 @@
 
 A proof-of-concept shell script for early detection of lookalike domain utilized in a business email compromise or third-party compromise.
 
-```help
+```shell
 $ ./freed.sh -h
 Usage: freed.sh [OPTION]... [DOMAIN]
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
@@ -14,7 +14,8 @@ options
   -d DEFANG     defang character/string, e.g. '·' (U+00B7), '[.]' (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i INCLUDES   include (domains/file with domains) separated by (comma/newline)
+  -i DOMAIN     include domain(s) separated by comma
+  -I FILE       include file containing domains separated by newline
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <your.gmail.account@gmail.com> (default)
