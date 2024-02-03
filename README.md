@@ -1,6 +1,6 @@
 # freed.sh
 
-A proof-of-concept shell script for early detection of lookalike domain utilized in a business email compromise or third-party compromise.
+A proof-of-concept shell script for early detection of lookalike domains utilized in a business email compromise or third-party compromise.
 
 ```
 $ ./freed.sh -h
@@ -25,11 +25,11 @@ options
 
 ## Premise
 
-To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, an adversary must be placed tactically in the middle of email communications between an organization and its counterparty, also known as man-in-the-email attack. A necessary condition for this attack to take place, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, is to register new domains or to update expired ones that look like the domains of the organization and its counterparty, which to the untrained eye, may be difficult to spot in an email.
+To pull off an attack or to achieve action on objectives in a business email compromise or third-party compromise, an adversary must be placed tactically in the middle of email communications between an organization and its counterparty, also known as a man-in-the-email attack. A necessary condition for this attack to take place, especially a [homoglyph](https://en.wikipedia.org/wiki/Homoglyph) attack, is to register new domains or to update expired ones that look like the domains of the organization and its counterparty, which to the untrained eye, may be difficult to spot in an email.
 
 The idea is simple.
 
-It makes no sense to detect lookalike domains of the counterparties since that number could easily fall into hundreds, if not more, an unmanageable situation for a large organization. The focus should be placed on detecting lookalike domains of the organization instead.
+It makes no sense to detect lookalike domains of the counterparties since that number could easily fall into hundreds if not more, an unmanageable situation for a large organization. The focus should be placed on detecting lookalike domains of the organization instead.
 
 The script can then be put in `crontab(5)` to run daily at midnight to find lookalike domains of the organization in the last twenty-four hours and send an email alert to a recipient if there's a hit.
 
@@ -39,14 +39,14 @@ The script can then be put in `crontab(5)` to run daily at midnight to find look
 
 The script uses `parallel` to speed things up, which takes no more than three minutes in a single vCPU virtual machine running Kali Linux.
 
-### Difference between a parked domain and a weaponized domain
+### The difference between a parked domain and a weaponized domain
 
 | Domain     | Created | MX Record                          |
 |:-----------|:--------|:-----------------------------------|
 | Parked     | Recent  | No                                 |
-| Weaponized | Recent  | Yes (email services<sup>1</sup>)   |
+| Weaponized | Recent  | Yes (email services[^1])   |
 
-[<sup>1</sup>](https://www.trendmicro.com/en_fi/research/21/j/analyzing-email-services-abused-for-business-email-compromise.html) _Trend Micro: Analyzing Email Services Abused for Business Email Compromise_
+[^1]:https://www.trendmicro.com/en_fi/research/21/j/analyzing-email-services-abused-for-business-email-compromise.html
 
 ### Dependencies
 
@@ -66,21 +66,21 @@ You should be able to get these programs from your Linux distribution.
 
 You can choose a permutation engine from three permutation engines: `dnstwist`, `urlcrazy` or `urlinsane` (default).
 
-### Send email from the script
+### Send an email from the script
 
 To send an email alert to a recipient, you need to sign up for a SMTP service.
 
-Gmail SMTP service is recommended because the `gmail.com` domain would pass SPF, DKIM and DMARC checks to deliver the email alert to a recipient (or `your.gmail.account@gmail.com` by default). The step-by-step instructions to set up Gmail SMTP service is beyond the scope of this README.
+Gmail SMTP service is recommended because the `gmail.com` domain would pass SPF, DKIM and DMARC checks to deliver the email alert to a recipient (or `your.gmail.account@gmail.com` by default). The step-by-step instructions to set up Gmail SMTP service are beyond the scope of this README.
 
 ## Example
 
-Running `freed.sh` on `facebook.com` to look back sixty days from the time of script run, with the following options:
+Running `freed.sh` on `facebook.com` to look back sixty days from the time of the script run, with the following options:
 
 * `-d`. Use defang character `․` (one dot leader) instead of the default `[.]` to save space.
 * `-i`. Include the original domain for comparison.
-* `-k`. Keep HTML result and do not send email.
+* `-k`. Keep the HTML result and do not send an email.
 * `-t`. Display thumbnail in HTML result.
-* `-x`. Display internationalized domain name in HTML result to expose homoglyph attacks.
+* `-x`. Display internationalized domain names in HTML results to expose homoglyph attacks.
 
 ```
 $ ./freed.sh -d ․ -i facebook.com -k -p 60d -t -x facebook.com
