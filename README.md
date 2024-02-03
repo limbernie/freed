@@ -2,7 +2,7 @@
 
 A proof-of-concept shell script for early detection of lookalike domain utilized in a business email compromise or third-party compromise.
 
-```shell
+```
 $ ./freed.sh -h
 Usage: freed.sh [OPTION]... [DOMAIN]
 Find lookalike DOMAIN created in the last PERIOD and send result to RECIPIENT.
