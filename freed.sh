@@ -49,7 +49,8 @@ options
   -d DEFANG     defang character/string, e.g. '·' (U+00B7), '[.]' (default)
   -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i INCLUDES   include (domains/file with domains) separated by (comma/newline)
+  -i DOMAIN     include domain(s) separated by comma
+  -I FILE       include file containing domains separated by newline
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
   -s RECIPIENT  send email to recipient, e.g. <$SMTP_USER> (default)
@@ -60,7 +61,7 @@ exit 0
 } >&2
 
 # parse options
-while getopts ":d:e:hi:kp:s:tx" opt; do
+while getopts ":d:e:hi:I:kp:s:tx" opt; do
     case $opt in
     d)
         DEFANG=$OPTARG
@@ -72,7 +73,10 @@ while getopts ":d:e:hi:kp:s:tx" opt; do
         usage
         ;;
     i)
-        INCLUDES=$OPTARG
+        INCLUDE_DOMAIN=$OPTARG
+        ;;
+    I)
+        INCLUDE_FILE=$OPTARG
         ;;
     k)
         KEEP=1
@@ -112,11 +116,14 @@ DOMAIN=${DOMAIN,,}
 DOMAIN_REGEX='^(result|[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?)$'
 [[ ! "$DOMAIN" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
 ENGINE=${ENGINE:=urlinsane}
-if [[ -f "$INCLUDES" ]]; then
-    readarray -t includes <"$INCLUDES"
-else
-    readarray -d, -t includes < <(printf "%s" "$INCLUDES")
-fi
+readarray -d, -t include_domain < <(printf "%s" "$INCLUDE_DOMAIN")
+[[ -f "$INCLUDE_FILE" ]] && readarray -t include_file <"$INCLUDE_FILE"
+for domain in "${include_domain[@]}"; do
+    includes+=("$domain")
+done
+for domain in "${include_file[@]}"; do
+    includes+=("$domain")
+done
 for include in "${includes[@]}"; do
     [[ ! "${include,,}" =~ $DOMAIN_REGEX ]] && die "invalid domain name or file"
     PIPE=${INCLUDE_REGEX:+|}
