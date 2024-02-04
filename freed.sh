@@ -117,10 +117,10 @@ DOMAIN_REGEX='^(result|[^-][a-z0-9-]{,62}\.[a-z]{2,3}(\.[a-z]{2})?)$'
 [[ ! "$DOMAIN" =~ $DOMAIN_REGEX ]] && die "invalid domain name"
 ENGINE=${ENGINE:=urlinsane}
 readarray -d, -t include_domain < <(printf "%s" "$INCLUDE_DOMAIN")
-[[ -f "$INCLUDE_FILE" ]] && readarray -t include_file <"$INCLUDE_FILE"
 for domain in "${include_domain[@]}"; do
     includes+=("$domain")
 done
+[[ -f "$INCLUDE_FILE" ]] && readarray -t include_file <"$INCLUDE_FILE"
 for domain in "${include_file[@]}"; do
     includes+=("$domain")
 done
