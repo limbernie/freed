@@ -93,7 +93,9 @@ while getopts ":d:e:hi:I:kp:s:tx" opt; do
             nodejs \
             puppeteer \
             puppeteer-extra \
-            puppeteer-extra-plugin-stealth
+            puppeteer-extra-plugin-stealth \
+            puppeteer-extra-plugin-user-data-dir \
+            puppeteer-extra-plugin-user-preferences
         ;;
     x)
         XN=
@@ -305,8 +307,6 @@ cat <<-EOF >"${DOMAIN}".whois.sh
 JOBS=\$1
 DOMAINS=\$2
 
-python=\$(which python3)
-
 function defang {
     local url=\$1
     url=\${url//http/hxxp}
@@ -374,8 +374,8 @@ function enrich {
             rr=\${rr:=None}
             rr="\$(defang "\$rr")"
 
-            ss=\$(python similar.py "\$domain" "${DOMAIN/result/$BASE_DOMAIN}" || error "textdistance")
-            sx=\$(python soundex.py "\$domain" || error "jellyfish")
+            ss=\$(/usr/bin/env python3 similar.py "\$domain" "${DOMAIN/result/$BASE_DOMAIN}" || error "textdistance")
+            sx=\$(/usr/bin/env python3 soundex.py "\$domain" || error "jellyfish")
 
             if [[ "\$ip" != "None" ]]; then
                 domain=\$domain
