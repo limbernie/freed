@@ -30,10 +30,10 @@ The script uses `parallel` to speed things up, which shouldn't take more than th
 
 The main objective of weaponizing a domain is so that the adversary can communicate directly with the organization and the counterparty. For that to happen, the adversary must set up an MX record in the DNS of the domain. 
 
-| Domain     | Created | MX Record                          |
-|:-----------|:--------|:-----------------------------------|
-| Parked     | Recent  | No                                 |
-| Weaponized | Recent  | Yes (usually free email services[^1])   |
+| Domain     | Created | MX Record                             |
+|:-----------|:--------|:--------------------------------------|
+| Parked     | Recent  | No                                    |
+| Weaponized | Recent  | Yes (usually free email services[^1]) |
 
 [^1]:https://www.trendmicro.com/en_fi/research/21/j/analyzing-email-services-abused-for-business-email-compromise.html
 
@@ -77,7 +77,7 @@ The script depends on the following programs for a start:
 3. [`parallel`](https://www.gnu.org/software/parallel/)
 4. [`sendemail`](https://github.com/mogaal/sendemail)
 5. [`urlcrazy`](https://github.com/urbanadventurer/urlcrazy)
-6. [`urlinsane`](https://github.com/ziazon/urlinsane)
+6. [`urlinsane`](https://github.com/rangertaha/urlinsane)
 7. [`whois`](https://github.com/rfc1036/whois)
 
 These programs and plugins are also needed depending on the options, such as (`-t`) display thumbnails in the HTML result or (`-x`) display internationalized domain names in the HTML result:
@@ -90,9 +90,9 @@ You should be able to get these programs from your preferred Linux distribution.
 
 ### Permutation
 
-You can choose one permutation engine out of three permutation engines: `dnstwist`, `urlcrazy` or `urlinsane` (default). URLInsane is chosen as the default since it has all the functionality of URLCrazy and DNSTwist.[^2]
+You can choose one permutation engine out of three permutation engines: `dnstwist`, `urlcrazy` or `urlinsane` (default). URLInsane is chosen as the default because it has all the functionality of URLCrazy and DNSTwist.[^2]
 
-[^2]: https://github.com/ziazon/urlinsane#features
+[^2]: https://github.com/rangertaha/urlinsane#features
 
 ### Send an email from the script
 
