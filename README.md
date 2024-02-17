@@ -66,7 +66,7 @@ The script operates in two modes: `alert` or `analysis`, depending on the positi
 
 If the `DOMAIN` argument is present, `alert` mode is active. The use case for `alert` mode is to alert lookalike domains when they are created. The permutation engine is used.
 
-If the `DOMAIN` argument is absent, `analysis` mode is active if and only if the `-i` and/or `-I` options are also present and valid. The use case for analysis mode is for standalone analysis of domains without using the permutation engine.
+If the `DOMAIN` argument is absent, `analysis` mode is active if and only if the `-i` and/or `-I` options are also present and valid. The use case for `analysis` mode is for standalone analysis of domains without using the permutation engine.
 
 ### Dependencies
 
