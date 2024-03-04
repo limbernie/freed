@@ -239,7 +239,7 @@ esac
 if [[ "$DOMAIN" != "result" ]]; then
 
     # $SCRIPT started in alert mode.
-    echo "[$(timestamp)] $SCRIPT started in alert mode."
+    echo "[$(timestamp)] $SCRIPT started in alert mode. Ctrl-C to quit."
 
     # Running \`$ENGINE' on "${DOMAIN}"...
     echo -n "[$(timestamp)] Running \`${ENGINE}' on \"${DOMAIN}\"..."
@@ -250,7 +250,7 @@ if [[ "$DOMAIN" != "result" ]]; then
 elif [[ "$DOMAIN" == "result" && "${includes[*]}" ]]; then
 
     # $SCRIPT started in analysis mode.
-    echo "[$(timestamp)] $SCRIPT started in analysis mode."
+    echo "[$(timestamp)] $SCRIPT started in analysis mode. Ctrl-C to quit."
 
     # Running without permutation...
     echo -n "[$(timestamp)] Running without permutation..." && echo >"${DOMAIN}.${EXT}"
@@ -454,6 +454,13 @@ function clean_all {
     clean_result all
     clean_script all
 }
+
+function goodbye {
+    echo -e "\n[$(timestamp)] SIGINT is caught. Goodbye!\n"
+    clean_all
+    exit 1
+} >&2
+trap goodbye SIGINT
 
 # check if there is something to do; if not, bail out early
 if (( $(wc -l "${DOMAIN}.${EXT}" | cut -d' ' -f1) == 1 )); then
