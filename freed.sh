@@ -456,7 +456,7 @@ function clean_all {
 }
 
 function goodbye {
-    echo -e "\n[$(timestamp)] SIGINT is caught. Goodbye!\n"
+    echo -e "\n[$(timestamp)] SIGINT is caught. Goodbye!"
     clean_all
     exit 1
 } >&2
