@@ -568,7 +568,7 @@ const minimal_args = [
 ];
 
 (async() => {
-    const browser = await puppeteer.launch({headless: 'new', args: minimal_args, ignoreHTTPSErrors: true, executablePath: '/home/bernie/.local/bin/chrome'});
+    const browser = await puppeteer.launch({headless: 'new', args: minimal_args, ignoreHTTPSErrors: true});
     try {
         const page = await browser.newPage();
         await page.setViewport({width: 800, height: 600});

@@ -55,7 +55,7 @@ options
   -I FILE       include file containing domains separated by newline
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
-  -s RECIPIENT  send email to recipient, e.g. <your.gmail.account@gmail.com> (default)
+  -s RECIPIENT  send email to recipient(s), e.g. <your.gmail.account@gmail.com> (default)
   -t            display thumbnail in HTML result
   -x            display internationalized domain name (IDN) in HTML result
 ```
