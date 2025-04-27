@@ -53,7 +53,7 @@ options
   -I FILE       include file containing domains separated by newline
   -k            keep HTML result and do not send email
   -p PERIOD     time period to look back, e.g. 30d, 24h (default)
-  -s RECIPIENT  send email to recipient, e.g. <$SMTP_USER> (default)
+  -s RECIPIENT  send email to recipient(s), e.g. <$SMTP_USER> (default)
   -t            display thumbnail in HTML result
   -x            display internationalized domain name (IDN) in HTML result
 EOF
@@ -223,7 +223,7 @@ cat <<-EOF >"${DOMAIN}.${ENGINE}".sh
 DOMAIN=\$1
 
 $URLINSANE typo \$DOMAIN -k all -x idna -o csv \\
-| grep -Ev '([HP]I|TLD)' \\
+| grep -Ev '([P]I|TLD)' \\
 | sed '11,\$!d' \\
 | awk -F, '{ print \$NF }' \\
 $XN >\${DOMAIN}.${EXT}
@@ -247,6 +247,10 @@ if [[ "$DOMAIN" != "result" ]]; then
     # insert original domain after permutation
     ./"${DOMAIN}.${ENGINE}".sh "${DOMAIN}" && sed -i "1i\\$DOMAIN" "${DOMAIN}.${EXT}"
 
+    # extract second level domain and top level domain from the domain
+    SLD=$(sed -r 's/([:digit::lower:-]{,63})(\.[a-z]{2,63})(\.[a-z]{2,63})?/\1/' <<< $DOMAIN)
+    TLD=$(sed "s/$SLD//" <<< $DOMAIN)
+
 elif [[ "$DOMAIN" == "result" && "${includes[*]}" ]]; then
 
     # $SCRIPT started in analysis mode.
@@ -261,6 +265,15 @@ else
     die "invalid operation"
 
 fi
+
+# insert prepended and appended cctld to SLD
+
+CCTLD=(af ax al dz as ad ao ai aq ag ar am aw ac au at az bs bh bd bb eus by be bz bj bm bt bo bq an nl ba bw bv br io vg bn bg bf mm bi kh cm ca cv cat ky cf td cl cn cx cc co km cd cg ck cr ci hr cu cw cy cz dk dj dm do tl tp ec eg sv gq er ee et eu fk fo fm fj fi fr gf pf tf ga gal gm ps ge de gh gi gr gl gd gp gu gt gg gn gw gy ht hm hn hk hu is in id ir iq ie im il it jm jp je jo kz ke ki kw kg la lv lb ls lr ly li lt lu mo mk mg mw my mv ml mt mh mq mr mu yt mx md mc mn me ms ma mz mm na nr np nl nc nz ni ne ng nu nf nc tr kp mp no om pk pw ps pa pg py pe ph pn pl pt pr qa ro ru rw re bq an bl gp fr sh kn lc mf gp fr pm vc ws sm st sa sn rs sc sl sg bq an nl sx an sk si sb so so za gs kr ss es lk sd sr sj sz se ch sy tw tj tz th tg tk to tt tn tr tm tc tv ug ua ae uk us vi uy uz vu va ve vn wf eh ma ye zm zw)
+
+for cc in ${CCTLD[@]}; do
+    sed -i "1i\\${cc}-${SLD}${TLD}" "${DOMAIN}.${EXT}"
+    sed -i "1i\\${SLD}-${cc}${TLD}" "${DOMAIN}.${EXT}"
+done
 
 # insert included domain(s)
 for include in "${includes[@]}"; do
@@ -555,7 +568,7 @@ const minimal_args = [
 ];
 
 (async() => {
-    const browser = await puppeteer.launch({headless: 'new', args: minimal_args, ignoreHTTPSErrors: true});
+    const browser = await puppeteer.launch({headless: 'new', args: minimal_args, ignoreHTTPSErrors: true, executablePath: '/home/bernie/.local/bin/chrome'});
     try {
         const page = await browser.newPage();
         await page.setViewport({width: 800, height: 600});
