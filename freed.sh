@@ -11,7 +11,7 @@ SMTP_USER="your.gmail.account@gmail.com"
 SMTP_PASS="your app password from gmail"
 SMTP_SERV="smtp.gmail.com:587"
 
-# ACE prefix filter in IDNs
+# ACE prefix exclusion filter in IDNs
 XN="| grep -Ev '^xn--'"
 
 # die gracefully
@@ -46,14 +46,14 @@ positional argument
   DOMAIN        target domain name
 
 options
-  -d DEFANG     defang character/string, e.g. '·' (U+00B7), '[.]' (default)
-  -e ENGINE     permutation engine, e.g. dnstwist, urlcrazy, urlinsane (default)
+  -d DEFANG     defang character/string, e.g., '·' (U+00B7), '[.]' (default)
+  -e ENGINE     permutation engine, e.g., dnstwist, urlcrazy, urlinsane (default)
   -h            display this help and exit
-  -i DOMAIN     include domain(s) separated by comma
+  -i DOMAIN     include domain(s) separated by comma, e.g., example.com,...
   -I FILE       include file containing domains separated by newline
   -k            keep HTML result and do not send email
-  -p PERIOD     time period to look back, e.g. 30d, 24h (default)
-  -s RECIPIENT  send email to recipient(s), e.g. <$SMTP_USER> (default)
+  -p PERIOD     time period to look back, e.g., 30d, 24h (default)
+  -s RECIPIENT  send email to recipient(s), e.g., <$SMTP_USER> (default)
   -t            display thumbnail in HTML result
   -x            display internationalized domain name (IDN) in HTML result
 EOF
